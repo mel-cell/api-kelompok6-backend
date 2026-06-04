@@ -39,13 +39,23 @@ class AuthController extends Controller
             properties: [
                 new OA\Property(property: 'success', type: 'boolean', example: true),
                 new OA\Property(property: 'message', type: 'string', example: 'Register berhasil'),
-                new OA\Property(property: 'data', type: 'object'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                    new OA\Property(property: 'token', type: 'string'),
+                ]),
             ]
         )
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validasi Gagal'
+        description: 'Validasi Gagal',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Validasi gagal'),
+                new OA\Property(property: 'errors', type: 'object'),
+            ]
+        )
     )]
     public function register(RegisterRequest $request): JsonResponse
     {
@@ -94,13 +104,22 @@ class AuthController extends Controller
             properties: [
                 new OA\Property(property: 'success', type: 'boolean', example: true),
                 new OA\Property(property: 'message', type: 'string', example: 'Login berhasil'),
-                new OA\Property(property: 'data', type: 'object'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                    new OA\Property(property: 'token', type: 'string'),
+                ]),
             ]
         )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Email atau password salah'
+        description: 'Email atau password salah',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Email atau password salah'),
+            ]
+        )
     )]
     public function login(LoginRequest $request): JsonResponse
     {
@@ -134,11 +153,23 @@ class AuthController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Logout berhasil'
+        description: 'Logout berhasil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Logout berhasil'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     public function logout(Request $request): JsonResponse
     {
@@ -159,11 +190,24 @@ class AuthController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Data profil user'
+        description: 'Data profil user',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/User'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     public function me(Request $request): JsonResponse
     {

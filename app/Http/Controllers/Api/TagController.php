@@ -19,7 +19,14 @@ class TagController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Daftar tag berhasil diambil'
+        description: 'Daftar tag berhasil diambil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Tag')),
+            ]
+        )
     )]
     public function index(): JsonResponse
     {
@@ -42,11 +49,24 @@ class TagController extends Controller
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Detail tag berhasil diambil'
+        description: 'Detail tag berhasil diambil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Tag'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Tag tidak ditemukan'
+        description: 'Tag tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function show(string $id): JsonResponse
     {

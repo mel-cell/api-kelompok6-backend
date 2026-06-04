@@ -19,7 +19,14 @@ class CategoryController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Daftar kategori berhasil diambil'
+        description: 'Daftar kategori berhasil diambil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Category')),
+            ]
+        )
     )]
     public function index(): JsonResponse
     {
@@ -46,11 +53,24 @@ class CategoryController extends Controller
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Detail kategori berhasil diambil'
+        description: 'Detail kategori berhasil diambil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Category'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Kategori tidak ditemukan'
+        description: 'Kategori tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function show(string $id): JsonResponse
     {

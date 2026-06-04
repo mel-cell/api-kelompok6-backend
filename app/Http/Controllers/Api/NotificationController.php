@@ -20,11 +20,36 @@ class NotificationController extends Controller
     #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 20))]
     #[OA\Response(
         response: 200,
-        description: 'Daftar notifikasi'
+        description: 'Daftar notifikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Notification')),
+                new OA\Property(property: 'meta', properties: [
+                    new OA\Property(property: 'current_page', type: 'integer'),
+                    new OA\Property(property: 'last_page', type: 'integer'),
+                    new OA\Property(property: 'per_page', type: 'integer'),
+                    new OA\Property(property: 'total', type: 'integer'),
+                ]),
+                new OA\Property(property: 'links', properties: [
+                    new OA\Property(property: 'first', type: 'string'),
+                    new OA\Property(property: 'last', type: 'string'),
+                    new OA\Property(property: 'prev', type: 'string', nullable: true),
+                    new OA\Property(property: 'next', type: 'string', nullable: true),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     public function index(Request $request): JsonResponse
     {
@@ -48,15 +73,33 @@ class NotificationController extends Controller
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Notifikasi ditandai dibaca'
+        description: 'Notifikasi ditandai dibaca',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Notifikasi ditandai dibaca'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Notifikasi tidak ditemukan'
+        description: 'Notifikasi tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function markRead(Request $request, string $id): JsonResponse
     {
@@ -80,11 +123,23 @@ class NotificationController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Semua notifikasi ditandai dibaca'
+        description: 'Semua notifikasi ditandai dibaca',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Semua notifikasi ditandai dibaca'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     public function markAllRead(Request $request): JsonResponse
     {
@@ -105,11 +160,26 @@ class NotificationController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Jumlah notifikasi belum dibaca'
+        description: 'Jumlah notifikasi belum dibaca',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'unread_count', type: 'integer', example: 5),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     public function unreadCount(Request $request): JsonResponse
     {

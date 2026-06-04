@@ -26,15 +26,47 @@ class SearchController extends Controller
     #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15))]
     #[OA\Response(
         response: 200,
-        description: 'Hasil pencarian post'
+        description: 'Hasil pencarian post',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Post')),
+                new OA\Property(property: 'meta', properties: [
+                    new OA\Property(property: 'current_page', type: 'integer'),
+                    new OA\Property(property: 'last_page', type: 'integer'),
+                    new OA\Property(property: 'per_page', type: 'integer'),
+                    new OA\Property(property: 'total', type: 'integer'),
+                ]),
+                new OA\Property(property: 'links', properties: [
+                    new OA\Property(property: 'first', type: 'string'),
+                    new OA\Property(property: 'last', type: 'string'),
+                    new OA\Property(property: 'prev', type: 'string', nullable: true),
+                    new OA\Property(property: 'next', type: 'string', nullable: true),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validasi gagal (q minimal 2 karakter)'
+        description: 'Validasi gagal (q minimal 2 karakter)',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Validasi gagal'),
+                new OA\Property(property: 'errors', type: 'object'),
+            ]
+        )
     )]
     public function posts(Request $request): JsonResponse
     {
@@ -65,15 +97,47 @@ class SearchController extends Controller
     #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15))]
     #[OA\Response(
         response: 200,
-        description: 'Hasil pencarian komentar'
+        description: 'Hasil pencarian komentar',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Comment')),
+                new OA\Property(property: 'meta', properties: [
+                    new OA\Property(property: 'current_page', type: 'integer'),
+                    new OA\Property(property: 'last_page', type: 'integer'),
+                    new OA\Property(property: 'per_page', type: 'integer'),
+                    new OA\Property(property: 'total', type: 'integer'),
+                ]),
+                new OA\Property(property: 'links', properties: [
+                    new OA\Property(property: 'first', type: 'string'),
+                    new OA\Property(property: 'last', type: 'string'),
+                    new OA\Property(property: 'prev', type: 'string', nullable: true),
+                    new OA\Property(property: 'next', type: 'string', nullable: true),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validasi gagal (q minimal 2 karakter)'
+        description: 'Validasi gagal (q minimal 2 karakter)',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Validasi gagal'),
+                new OA\Property(property: 'errors', type: 'object'),
+            ]
+        )
     )]
     public function comments(Request $request): JsonResponse
     {
@@ -104,15 +168,47 @@ class SearchController extends Controller
     #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15))]
     #[OA\Response(
         response: 200,
-        description: 'Hasil pencarian user'
+        description: 'Hasil pencarian user',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/User')),
+                new OA\Property(property: 'meta', properties: [
+                    new OA\Property(property: 'current_page', type: 'integer'),
+                    new OA\Property(property: 'last_page', type: 'integer'),
+                    new OA\Property(property: 'per_page', type: 'integer'),
+                    new OA\Property(property: 'total', type: 'integer'),
+                ]),
+                new OA\Property(property: 'links', properties: [
+                    new OA\Property(property: 'first', type: 'string'),
+                    new OA\Property(property: 'last', type: 'string'),
+                    new OA\Property(property: 'prev', type: 'string', nullable: true),
+                    new OA\Property(property: 'next', type: 'string', nullable: true),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validasi gagal (q minimal 2 karakter)'
+        description: 'Validasi gagal (q minimal 2 karakter)',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Validasi gagal'),
+                new OA\Property(property: 'errors', type: 'object'),
+            ]
+        )
     )]
     public function users(Request $request): JsonResponse
     {

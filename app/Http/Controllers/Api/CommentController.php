@@ -27,11 +27,24 @@ class CommentController extends Controller
     #[OA\Parameter(name: 'postId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Daftar komentar berhasil diambil'
+        description: 'Daftar komentar berhasil diambil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Comment')),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Post tidak ditemukan'
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function index(string $postId): JsonResponse
     {
@@ -74,15 +87,34 @@ class CommentController extends Controller
     )]
     #[OA\Response(
         response: 201,
-        description: 'Komentar berhasil ditambahkan'
+        description: 'Komentar berhasil ditambahkan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Komentar berhasil ditambahkan'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Comment'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Post tidak ditemukan'
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function store(StoreCommentRequest $request, string $postId): JsonResponse
     {
@@ -134,19 +166,44 @@ class CommentController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Komentar diperbarui'
+        description: 'Komentar diperbarui',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Komentar diperbarui'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Comment'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 403,
-        description: 'Akses ditolak'
+        description: 'Akses ditolak',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Komentar tidak ditemukan'
+        description: 'Komentar tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function update(UpdateCommentRequest $request, string $id): JsonResponse
     {
@@ -189,19 +246,43 @@ class CommentController extends Controller
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Komentar dihapus'
+        description: 'Komentar dihapus',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Komentar dihapus'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 403,
-        description: 'Akses ditolak'
+        description: 'Akses ditolak',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Komentar tidak ditemukan'
+        description: 'Komentar tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function destroy(Request $request, string $id): JsonResponse
     {
@@ -235,19 +316,55 @@ class CommentController extends Controller
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Riwayat edit komentar'
+        description: 'Riwayat edit komentar',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+                        new OA\Property(property: 'body_before', type: 'string'),
+                        new OA\Property(property: 'body_after', type: 'string'),
+                        new OA\Property(property: 'edited_at', type: 'string', format: 'date-time'),
+                        new OA\Property(property: 'editor', properties: [
+                            new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+                            new OA\Property(property: 'username', type: 'string'),
+                        ]),
+                    ]
+                )),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 403,
-        description: 'Akses ditolak'
+        description: 'Akses ditolak',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Komentar tidak ditemukan'
+        description: 'Komentar tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function history(Request $request, string $id): JsonResponse
     {

@@ -35,7 +35,29 @@ class PostController extends Controller
     #[OA\Parameter(name: 'sort', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['created_at', 'title', 'view_count', 'vote_score']))]
     #[OA\Parameter(name: 'order', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['asc', 'desc']))]
     #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15))]
-    #[OA\Response(response: 200, description: 'Daftar post berhasil diambil')]
+    #[OA\Response(
+        response: 200,
+        description: 'Daftar post berhasil diambil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Post')),
+                new OA\Property(property: 'meta', properties: [
+                    new OA\Property(property: 'current_page', type: 'integer'),
+                    new OA\Property(property: 'last_page', type: 'integer'),
+                    new OA\Property(property: 'per_page', type: 'integer'),
+                    new OA\Property(property: 'total', type: 'integer'),
+                ]),
+                new OA\Property(property: 'links', properties: [
+                    new OA\Property(property: 'first', type: 'string'),
+                    new OA\Property(property: 'last', type: 'string'),
+                    new OA\Property(property: 'prev', type: 'string', nullable: true),
+                    new OA\Property(property: 'next', type: 'string', nullable: true),
+                ]),
+            ]
+        )
+    )]
     public function index(Request $request): JsonResponse
     {
         try {
@@ -93,9 +115,38 @@ class PostController extends Controller
             ]
         )
     )]
-    #[OA\Response(response: 201, description: 'Post berhasil dibuat')]
-    #[OA\Response(response: 401, description: 'Tidak terautentikasi')]
-    #[OA\Response(response: 422, description: 'Validasi gagal')]
+    #[OA\Response(
+        response: 201,
+        description: 'Post berhasil dibuat',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Post berhasil dibuat'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Post'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validasi gagal',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Validasi gagal'),
+                new OA\Property(property: 'errors', type: 'object'),
+            ]
+        )
+    )]
     public function store(StorePostRequest $request): JsonResponse
     {
         try {
@@ -130,8 +181,27 @@ class PostController extends Controller
         tags: ['Posts']
     )]
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
-    #[OA\Response(response: 200, description: 'Detail post berhasil diambil')]
-    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
+    #[OA\Response(
+        response: 200,
+        description: 'Detail post berhasil diambil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Post'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
+    )]
     public function show(Request $request, string $id): JsonResponse
     {
         try {
@@ -189,9 +259,37 @@ class PostController extends Controller
             ]
         )
     )]
-    #[OA\Response(response: 200, description: 'Post berhasil diperbarui')]
-    #[OA\Response(response: 403, description: 'Akses ditolak')]
-    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
+    #[OA\Response(
+        response: 200,
+        description: 'Post berhasil diperbarui',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Post berhasil diperbarui'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Post'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
+    )]
     public function update(UpdatePostRequest $request, string $id): JsonResponse
     {
         try {
@@ -242,9 +340,36 @@ class PostController extends Controller
         tags: ['Posts']
     )]
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
-    #[OA\Response(response: 200, description: 'Post berhasil dihapus')]
-    #[OA\Response(response: 403, description: 'Akses ditolak')]
-    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
+    #[OA\Response(
+        response: 200,
+        description: 'Post berhasil dihapus',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Post berhasil dihapus'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
+    )]
     public function destroy(Request $request, string $id): JsonResponse
     {
         try {
@@ -276,9 +401,36 @@ class PostController extends Controller
     )]
     #[OA\Parameter(name: 'postId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Parameter(name: 'commentId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
-    #[OA\Response(response: 200, description: 'Jawaban diterima')]
-    #[OA\Response(response: 403, description: 'Hanya pemilik post')]
-    #[OA\Response(response: 404, description: 'Post atau komentar tidak ditemukan')]
+    #[OA\Response(
+        response: 200,
+        description: 'Jawaban diterima',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Jawaban diterima'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Hanya pemilik post',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Hanya pemilik post yang bisa accept answer'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post atau komentar tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
+    )]
     public function acceptAnswer(Request $request, string $postId, string $commentId): JsonResponse
     {
         try {
@@ -324,8 +476,29 @@ class PostController extends Controller
         tags: ['Posts']
     )]
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
-    #[OA\Response(response: 200, description: 'Status bookmark berubah')]
-    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
+    #[OA\Response(
+        response: 200,
+        description: 'Status bookmark berubah',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Bookmark dihapus'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'is_bookmarked', type: 'boolean', example: false),
+                ]),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
+    )]
     public function toggleBookmark(Request $request, string $id): JsonResponse
     {
         try {
@@ -361,9 +534,49 @@ class PostController extends Controller
         tags: ['Posts']
     )]
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
-    #[OA\Response(response: 200, description: 'Riwayat edit post')]
-    #[OA\Response(response: 403, description: 'Akses ditolak')]
-    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
+    #[OA\Response(
+        response: 200,
+        description: 'Riwayat edit post',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+                        new OA\Property(property: 'body_before', type: 'string'),
+                        new OA\Property(property: 'body_after', type: 'string'),
+                        new OA\Property(property: 'reason', type: 'string', nullable: true),
+                        new OA\Property(property: 'edited_at', type: 'string', format: 'date-time'),
+                        new OA\Property(property: 'editor', properties: [
+                            new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+                            new OA\Property(property: 'username', type: 'string'),
+                        ]),
+                    ]
+                )),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
+    )]
     public function history(Request $request, string $id): JsonResponse
     {
         try {

@@ -21,11 +21,24 @@ class ProfileController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Data profil'
+        description: 'Data profil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/User'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     public function show(Request $request): JsonResponse
     {
@@ -54,15 +67,35 @@ class ProfileController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Profil berhasil diperbarui'
+        description: 'Profil berhasil diperbarui',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Profil berhasil diperbarui'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/User'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validasi gagal'
+        description: 'Validasi gagal',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Validasi gagal'),
+                new OA\Property(property: 'errors', type: 'object'),
+            ]
+        )
     )]
     public function update(UpdateProfileRequest $request): JsonResponse
     {
@@ -100,15 +133,34 @@ class ProfileController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Avatar berhasil dihapus'
+        description: 'Avatar berhasil dihapus',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Avatar berhasil dihapus'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/User'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Tidak ada avatar untuk dihapus'
+        description: 'Tidak ada avatar untuk dihapus',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak ada avatar untuk dihapus'),
+            ]
+        )
     )]
     public function destroyAvatar(Request $request): JsonResponse
     {

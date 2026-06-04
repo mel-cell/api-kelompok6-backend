@@ -34,19 +34,51 @@ class VoteController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Vote dihapus atau diubah'
+        description: 'Vote dihapus atau diubah',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Vote dihapus'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'vote_type', type: 'string', nullable: true),
+                    new OA\Property(property: 'vote_score', type: 'integer'),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 201,
-        description: 'Vote berhasil ditambahkan'
+        description: 'Vote berhasil ditambahkan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Vote berhasil'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'vote_type', type: 'string'),
+                    new OA\Property(property: 'vote_score', type: 'integer'),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Post tidak ditemukan'
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function togglePost(Request $request, string $postId): JsonResponse
     {
@@ -135,19 +167,51 @@ class VoteController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Vote dihapus atau diubah'
+        description: 'Vote dihapus atau diubah',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Vote dihapus'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'vote_type', type: 'string', nullable: true),
+                    new OA\Property(property: 'vote_score', type: 'integer'),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 201,
-        description: 'Vote berhasil ditambahkan'
+        description: 'Vote berhasil ditambahkan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Vote berhasil'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'vote_type', type: 'string'),
+                    new OA\Property(property: 'vote_score', type: 'integer'),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Komentar tidak ditemukan'
+        description: 'Komentar tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function toggleComment(Request $request, string $commentId): JsonResponse
     {

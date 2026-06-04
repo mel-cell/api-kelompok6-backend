@@ -22,19 +22,49 @@ class LikeController extends Controller
     #[OA\Parameter(name: 'postId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Like dihapus / status like berubah'
+        description: 'Like dihapus / status like berubah',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Like dihapus'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'liked', type: 'boolean', example: false),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 201,
-        description: 'Like berhasil ditambahkan'
+        description: 'Like berhasil ditambahkan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Like berhasil'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'liked', type: 'boolean', example: true),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Post tidak ditemukan'
+        description: 'Post tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function togglePost(Request $request, string $postId): JsonResponse
     {
@@ -76,19 +106,49 @@ class LikeController extends Controller
     #[OA\Parameter(name: 'commentId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Like dihapus / status like berubah'
+        description: 'Like dihapus / status like berubah',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Like dihapus'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'liked', type: 'boolean', example: false),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 201,
-        description: 'Like berhasil ditambahkan'
+        description: 'Like berhasil ditambahkan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Like berhasil'),
+                new OA\Property(property: 'data', properties: [
+                    new OA\Property(property: 'liked', type: 'boolean', example: true),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Komentar tidak ditemukan'
+        description: 'Komentar tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function toggleComment(Request $request, string $commentId): JsonResponse
     {

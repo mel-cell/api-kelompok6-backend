@@ -24,7 +24,19 @@ class ReportController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Daftar alasan report'
+        description: 'Daftar alasan report',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(
+                    properties: [
+                        new OA\Property(property: 'value', type: 'string'),
+                        new OA\Property(property: 'label', type: 'string'),
+                    ]
+                )),
+            ]
+        )
     )]
     public function reasons(): JsonResponse
     {
@@ -55,15 +67,35 @@ class ReportController extends Controller
     )]
     #[OA\Response(
         response: 201,
-        description: 'Laporan berhasil dikirim'
+        description: 'Laporan berhasil dikirim',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Laporan berhasil dikirim.'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Report'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validasi gagal'
+        description: 'Validasi gagal',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Validasi gagal'),
+                new OA\Property(property: 'errors', type: 'object'),
+            ]
+        )
     )]
     public function store(StoreReportRequest $request): JsonResponse
     {
@@ -99,15 +131,46 @@ class ReportController extends Controller
     #[OA\Parameter(name: 'target_type', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['post', 'comment']))]
     #[OA\Response(
         response: 200,
-        description: 'Daftar laporan'
+        description: 'Daftar laporan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Report')),
+                new OA\Property(property: 'meta', properties: [
+                    new OA\Property(property: 'current_page', type: 'integer'),
+                    new OA\Property(property: 'last_page', type: 'integer'),
+                    new OA\Property(property: 'per_page', type: 'integer'),
+                    new OA\Property(property: 'total', type: 'integer'),
+                ]),
+                new OA\Property(property: 'links', properties: [
+                    new OA\Property(property: 'first', type: 'string'),
+                    new OA\Property(property: 'last', type: 'string'),
+                    new OA\Property(property: 'prev', type: 'string', nullable: true),
+                    new OA\Property(property: 'next', type: 'string', nullable: true),
+                ]),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 403,
-        description: 'Akses ditolak (bukan moderator/admin)'
+        description: 'Akses ditolak (bukan moderator/admin)',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
     )]
     public function index(Request $request): JsonResponse
     {
@@ -139,19 +202,44 @@ class ReportController extends Controller
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
-        description: 'Detail laporan'
+        description: 'Detail laporan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Berhasil'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Report'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 403,
-        description: 'Akses ditolak (bukan moderator/admin)'
+        description: 'Akses ditolak (bukan moderator/admin)',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Laporan tidak ditemukan'
+        description: 'Laporan tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function show(string $id): JsonResponse
     {
@@ -189,19 +277,44 @@ class ReportController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Laporan berhasil diupdate'
+        description: 'Laporan berhasil diupdate',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Laporan berhasil diupdate.'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Report'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 401,
-        description: 'Tidak terautentikasi'
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 403,
-        description: 'Akses ditolak (bukan moderator/admin)'
+        description: 'Akses ditolak (bukan moderator/admin)',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak memiliki akses'),
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Laporan tidak ditemukan'
+        description: 'Laporan tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
     )]
     public function resolve(Request $request, string $id): JsonResponse
     {
