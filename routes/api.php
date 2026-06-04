@@ -7,16 +7,17 @@ use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VoteController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
 
@@ -49,6 +50,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/comments/{comment}', [CommentController::class, 'update']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
     Route::get('/comments/{comment}/history', [CommentController::class, 'history']);
+
+    Route::post('/reports', [ReportController::class, 'store'])->middleware('throttle:reports');
+});
+
+Route::get('/reports/reasons', [ReportController::class, 'reasons']);
+
+Route::middleware(['auth:sanctum', 'role:moderator,admin', 'throttle:api'])->group(function () {
+    Route::get('/reports', [ReportController::class, 'index']);
+    Route::get('/reports/{report}', [ReportController::class, 'show']);
+    Route::patch('/reports/{report}/resolve', [ReportController::class, 'resolve']);
 });
 
 Route::get('/categories', [CategoryController::class, 'index']);

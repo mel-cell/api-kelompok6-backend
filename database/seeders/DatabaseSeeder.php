@@ -21,8 +21,24 @@ class DatabaseSeeder extends Seeder
             'username' => 'admin',
             'email' => 'admin@forum.test',
             'password_hash' => Hash::make('password'),
-            'reputation_points' => 0,
-            'level' => 1,
+            'reputation_points' => 150,
+            'level' => 5,
+        ]);
+
+        $moderator = User::create([
+            'username' => 'moderator',
+            'email' => 'moderator@forum.test',
+            'password_hash' => Hash::make('password'),
+            'reputation_points' => 80,
+            'level' => 3,
+        ]);
+
+        $user = User::create([
+            'username' => 'user',
+            'email' => 'user@forum.test',
+            'password_hash' => Hash::make('password'),
+            'reputation_points' => 25,
+            'level' => 2,
         ]);
 
         $adminRole = Role::where('name', 'admin')->first();
@@ -30,17 +46,16 @@ class DatabaseSeeder extends Seeder
             $admin->roles()->attach($adminRole->id, ['assigned_at' => now()]);
         }
 
-        $user = User::create([
-            'username' => 'user',
-            'email' => 'user@forum.test',
-            'password_hash' => Hash::make('password'),
-            'reputation_points' => 0,
-            'level' => 1,
-        ]);
+        $modRole = Role::where('name', 'moderator')->first();
+        if ($modRole) {
+            $moderator->roles()->attach($modRole->id, ['assigned_at' => now()]);
+        }
 
         $userRole = Role::where('name', 'user')->first();
         if ($userRole) {
             $user->roles()->attach($userRole->id, ['assigned_at' => now()]);
         }
+
+        $this->call(PostSeeder::class);
     }
 }

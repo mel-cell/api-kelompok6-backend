@@ -13,7 +13,7 @@ class CheckRole
         $user = $request->user();
 
         if (! $user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
         }
 
         $userRoles = $user->roles->pluck('name')->toArray();
@@ -24,6 +24,6 @@ class CheckRole
             }
         }
 
-        return response()->json(['message' => 'Forbidden: tidak memiliki akses'], 403);
+        return response()->json(['success' => false, 'message' => 'Forbidden: tidak memiliki akses'], 403);
     }
 }

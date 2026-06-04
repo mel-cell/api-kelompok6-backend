@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -15,56 +16,70 @@ class AuthController extends Controller
 {
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'password_hash' => Hash::make($request->password),
-        ]);
+        try {
+            $user = User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'password_hash' => Hash::make($request->password),
+            ]);
 
-        $userRole = Role::where('name', 'user')->first();
-        if ($userRole) {
-            $user->roles()->attach($userRole->id, ['assigned_at' => now()]);
+            $userRole = Role::where('name', 'user')->first();
+            if ($userRole) {
+                $user->roles()->attach($userRole->id, ['assigned_at' => now()]);
+            }
+
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            return $this->created([
+                'user' => $user->load('roles'),
+                'token' => $token,
+            ], 'Register berhasil');
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
         }
-
-        $token = $user->createToken('auth-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Register berhasil',
-            'user' => $user->load('roles'),
-            'token' => $token,
-        ], 201);
     }
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $user = User::where('email', $request->email)->first();
+        try {
+            $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password_hash)) {
-            return response()->json(['message' => 'Email atau password salah'], 401);
+            if (! $user || ! Hash::check($request->password, $user->password_hash)) {
+                return $this->unauthorized('Email atau password salah');
+            }
+
+            if ($user->is_banned) {
+                return $this->forbidden('Akun kamu telah dibanned');
+            }
+
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            return $this->ok([
+                'user' => $user->load('roles'),
+                'token' => $token,
+            ], 'Login berhasil');
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
         }
-
-        if ($user->is_banned) {
-            return response()->json(['message' => 'Akun kamu telah dibanned'], 403);
-        }
-
-        $token = $user->createToken('auth-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login berhasil',
-            'user' => $user->load('roles'),
-            'token' => $token,
-        ]);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        try {
+            $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logout berhasil']);
+            return $this->ok(null, 'Logout berhasil');
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
     }
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user()->load('roles'));
+        try {
+            return $this->resource(new UserResource($request->user()->load('roles')));
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
     }
 }

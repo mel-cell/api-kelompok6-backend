@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\Comment;
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCommentRequest extends FormRequest
+class StoreCommentRequest extends ApiRequest
 {
     public function authorize(): bool
     {

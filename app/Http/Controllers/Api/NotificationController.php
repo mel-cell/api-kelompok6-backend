@@ -3,41 +3,60 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Notification;
+use App\Http\Resources\NotificationResource;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $notifications = $request->user()->notifications()
-            ->with('actor:id,username,avatar_url')
-            ->orderBy('created_at', 'desc')
-            ->paginate($request->per_page ?? 20);
+        try {
+            $notifications = $request->user()->notifications()
+                ->orderBy('created_at', 'desc')
+                ->paginate($request->per_page ?? 20);
 
-        return response()->json($notifications);
+            return $this->resource(NotificationResource::collection($notifications));
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
     }
 
     public function markRead(string $id): JsonResponse
     {
-        $notification = Notification::findOrFail($id);
-        $notification->update(['is_read' => true]);
+        try {
+            $notification = DatabaseNotification::findOrFail($id);
+            $notification->markAsRead();
 
-        return response()->json(['message' => 'Notifikasi ditandai dibaca']);
+            return $this->ok(null, 'Notifikasi ditandai dibaca');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
     }
 
     public function markAllRead(Request $request): JsonResponse
     {
-        $request->user()->notifications()->where('is_read', false)->update(['is_read' => true]);
+        try {
+            $request->user()->unreadNotifications->markAsRead();
 
-        return response()->json(['message' => 'Semua notifikasi ditandai dibaca']);
+            return $this->ok(null, 'Semua notifikasi ditandai dibaca');
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
     }
 
     public function unreadCount(Request $request): JsonResponse
     {
-        $count = $request->user()->notifications()->where('is_read', false)->count();
+        try {
+            $count = $request->user()->unreadNotifications()->count();
 
-        return response()->json(['unread_count' => $count]);
+            return $this->ok(['unread_count' => $count]);
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
     }
 }
