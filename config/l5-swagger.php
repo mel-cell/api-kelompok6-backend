@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SwaggerServerUrl;
 use L5Swagger\Generator;
 use OpenApi\scan;
 
@@ -72,7 +73,7 @@ return [
             'middleware' => [
                 'api' => [],
                 'asset' => [],
-                'docs' => [],
+                'docs' => [SwaggerServerUrl::class],
                 'oauth2_callback' => [],
             ],
 
