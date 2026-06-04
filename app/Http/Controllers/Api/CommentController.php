@@ -127,10 +127,18 @@ class CommentController extends Controller
         }
     }
 
-    public function history(string $id): JsonResponse
+    public function history(Request $request, string $id): JsonResponse
     {
         try {
             $comment = Comment::findOrFail($id);
+
+            $user = $request->user();
+            $isOwner = $comment->user_id === $user->id;
+            $isModerator = $user->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
+
+            if (! $isOwner && ! $isModerator) {
+                return $this->forbidden();
+            }
 
             $histories = $comment->editHistories()
                 ->with('editor:id,username')

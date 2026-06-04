@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     curl \
-  && docker-php-ext-install pdo_mysql mbstring zip gd xml bcmath
+  && docker-php-ext-install pdo_mysql mbstring zip gd xml bcmath pcntl
 
 RUN pecl install redis && docker-php-ext-enable redis
 
@@ -18,8 +18,10 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN mkdir -p storage/logs storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache \
-    && chmod -R 777 storage bootstrap/cache
+RUN composer install --no-interaction --optimize-autoloader --ignore-platform-req=ext-pcntl && \
+    mkdir -p storage/logs storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache && \
+    chmod -R 777 storage bootstrap/cache && \
+    rm -f .env
 
 EXPOSE 9000
 

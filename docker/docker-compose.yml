@@ -15,6 +15,8 @@ services:
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
+      - APP_KEY=base64:BVzpd4XK2VJE0z6pGo0eT8Kvw0CxJPjSMQubJflW3Js=
+      - DB_CONNECTION=mysql
       - DB_HOST=host.docker.internal
       - DB_PORT=3306
       - DB_DATABASE=apikelompok6

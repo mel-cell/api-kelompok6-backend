@@ -1,3 +1,0 @@
-api.melvin.my.id {
-    reverse_proxy localhost:9000
-}

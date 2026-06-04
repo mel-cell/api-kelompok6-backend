@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,8 +31,21 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
+    private function forceHttpsIfSecure(): void
+    {
+        if (app()->runningInConsole()) {
+            return;
+        }
+
+        if (request()->isSecure()) {
+            URL::forceScheme('https');
+        }
+    }
+
     public function boot(): void
     {
+        $this->forceHttpsIfSecure();
+
         Relation::morphMap([
             'post' => Post::class,
             'comment' => Comment::class,

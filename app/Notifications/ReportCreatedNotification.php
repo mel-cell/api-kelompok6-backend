@@ -11,11 +11,11 @@ class ReportCreatedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public $queue = 'notifications';
-
     public function __construct(
         public Report $report,
-    ) {}
+    ) {
+        $this->queue = 'notifications';
+    }
 
     public function via(object $notifiable): array
     {

@@ -24,7 +24,7 @@ class SearchController extends Controller
             $posts = Post::with(['user:id,username,avatar_url', 'category:id,name,slug', 'tags:id,name,slug,color'])
                 ->whereIn('id', $ids)
                 ->orderBy('created_at', 'desc')
-                ->paginate($request->per_page ?? 15);
+                ->paginate(min($request->per_page ?? 15, 50));
 
             return $this->resource(PostResource::collection($posts));
         } catch (ValidationException $e) {
@@ -43,7 +43,7 @@ class SearchController extends Controller
             $comments = Comment::with('user:id,username,avatar_url')
                 ->whereIn('id', $ids)
                 ->orderBy('created_at', 'desc')
-                ->paginate($request->per_page ?? 15);
+                ->paginate(min($request->per_page ?? 15, 50));
 
             return $this->resource(CommentResource::collection($comments));
         } catch (ValidationException $e) {
@@ -61,7 +61,7 @@ class SearchController extends Controller
             $ids = User::search($request->q)->get()->pluck('id');
             $users = User::whereIn('id', $ids)
                 ->orderBy('reputation_points', 'desc')
-                ->paginate($request->per_page ?? 15);
+                ->paginate(min($request->per_page ?? 15, 50));
 
             return $this->resource(UserResource::collection($users));
         } catch (ValidationException $e) {

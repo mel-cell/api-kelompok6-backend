@@ -24,10 +24,10 @@ class NotificationController extends Controller
         }
     }
 
-    public function markRead(string $id): JsonResponse
+    public function markRead(Request $request, string $id): JsonResponse
     {
         try {
-            $notification = DatabaseNotification::findOrFail($id);
+            $notification = $request->user()->notifications()->findOrFail($id);
             $notification->markAsRead();
 
             return $this->ok(null, 'Notifikasi ditandai dibaca');

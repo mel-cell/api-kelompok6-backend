@@ -11,9 +11,42 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
+    #[OA\Post(
+        path: '/api/v1/register',
+        summary: 'Pendaftaran User Baru',
+        tags: ['Authentication']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['username', 'email', 'password', 'password_confirmation'],
+            properties: [
+                new OA\Property(property: 'username', type: 'string', example: 'budi'),
+                new OA\Property(property: 'email', type: 'string', format: 'email', example: 'budi@example.com'),
+                new OA\Property(property: 'password', type: 'string', format: 'password', example: 'Password123'),
+                new OA\Property(property: 'password_confirmation', type: 'string', format: 'password', example: 'Password123'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Pendaftaran Berhasil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Register berhasil'),
+                new OA\Property(property: 'data', type: 'object'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validasi Gagal'
+    )]
     public function register(RegisterRequest $request): JsonResponse
     {
         try {
@@ -39,6 +72,36 @@ class AuthController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/login',
+        summary: 'User Login',
+        tags: ['Authentication']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['email', 'password'],
+            properties: [
+                new OA\Property(property: 'email', type: 'string', format: 'email', example: 'budi@example.com'),
+                new OA\Property(property: 'password', type: 'string', format: 'password', example: 'Password123'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Login Berhasil',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Login berhasil'),
+                new OA\Property(property: 'data', type: 'object'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Email atau password salah'
+    )]
     public function login(LoginRequest $request): JsonResponse
     {
         try {

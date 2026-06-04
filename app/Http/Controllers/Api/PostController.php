@@ -20,9 +20,22 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class PostController extends Controller
 {
+    #[OA\Get(
+        path: '/api/v1/posts',
+        summary: 'Daftar semua post',
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'category', in: 'query', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'tag', in: 'query', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'sort', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['created_at', 'title', 'view_count', 'vote_score']))]
+    #[OA\Parameter(name: 'order', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['asc', 'desc']))]
+    #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15))]
+    #[OA\Response(response: 200, description: 'Daftar post berhasil diambil')]
     public function index(Request $request): JsonResponse
     {
         try {
@@ -49,8 +62,9 @@ class PostController extends Controller
                 $query->where('status', $request->status);
             }
 
-            $sortField = $request->sort ?? 'created_at';
-            $sortDir = $request->order ?? 'desc';
+            $allowedSorts = ['created_at', 'title', 'view_count', 'vote_score'];
+            $sortField = in_array($request->sort, $allowedSorts) ? $request->sort : 'created_at';
+            $sortDir = strtolower($request->order ?? '') === 'asc' ? 'asc' : 'desc';
             $query->orderBy($sortField, $sortDir);
 
             $posts = $query->paginate($request->per_page ?? 15);
@@ -61,6 +75,27 @@ class PostController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/posts',
+        summary: 'Buat post baru',
+        security: [['bearerAuth' => []]],
+        tags: ['Posts']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['category_id', 'title', 'body'],
+            properties: [
+                new OA\Property(property: 'category_id', type: 'string', format: 'uuid'),
+                new OA\Property(property: 'title', type: 'string', example: 'Cara menggunakan Laravel'),
+                new OA\Property(property: 'body', type: 'string', example: 'Penjelasan lengkap...'),
+                new OA\Property(property: 'tags', type: 'array', items: new OA\Items(type: 'string', format: 'uuid')),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Post berhasil dibuat')]
+    #[OA\Response(response: 401, description: 'Tidak terautentikasi')]
+    #[OA\Response(response: 422, description: 'Validasi gagal')]
     public function store(StorePostRequest $request): JsonResponse
     {
         try {
@@ -89,6 +124,14 @@ class PostController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/posts/{id}',
+        summary: 'Detail post',
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(response: 200, description: 'Detail post berhasil diambil')]
+    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
     public function show(Request $request, string $id): JsonResponse
     {
         try {
@@ -128,6 +171,27 @@ class PostController extends Controller
         }
     }
 
+    #[OA\Put(
+        path: '/api/v1/posts/{id}',
+        summary: 'Update post (pemilik atau moderator)',
+        security: [['bearerAuth' => []]],
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'title', type: 'string'),
+                new OA\Property(property: 'body', type: 'string'),
+                new OA\Property(property: 'category_id', type: 'string', format: 'uuid'),
+                new OA\Property(property: 'reason', type: 'string'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Post berhasil diperbarui')]
+    #[OA\Response(response: 403, description: 'Akses ditolak')]
+    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
     public function update(UpdatePostRequest $request, string $id): JsonResponse
     {
         try {
@@ -171,6 +235,16 @@ class PostController extends Controller
         }
     }
 
+    #[OA\Delete(
+        path: '/api/v1/posts/{id}',
+        summary: 'Hapus post (pemilik atau moderator)',
+        security: [['bearerAuth' => []]],
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(response: 200, description: 'Post berhasil dihapus')]
+    #[OA\Response(response: 403, description: 'Akses ditolak')]
+    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
     public function destroy(Request $request, string $id): JsonResponse
     {
         try {
@@ -194,6 +268,17 @@ class PostController extends Controller
         }
     }
 
+    #[OA\Patch(
+        path: '/api/v1/posts/{postId}/accept/{commentId}',
+        summary: 'Tandai komentar sebagai jawaban diterima',
+        security: [['bearerAuth' => []]],
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'postId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Parameter(name: 'commentId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(response: 200, description: 'Jawaban diterima')]
+    #[OA\Response(response: 403, description: 'Hanya pemilik post')]
+    #[OA\Response(response: 404, description: 'Post atau komentar tidak ditemukan')]
     public function acceptAnswer(Request $request, string $postId, string $commentId): JsonResponse
     {
         try {
@@ -232,6 +317,15 @@ class PostController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/posts/{id}/bookmark',
+        summary: 'Toggle bookmark post',
+        security: [['bearerAuth' => []]],
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(response: 200, description: 'Status bookmark berubah')]
+    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
     public function toggleBookmark(Request $request, string $id): JsonResponse
     {
         try {
@@ -260,10 +354,28 @@ class PostController extends Controller
         }
     }
 
-    public function history(string $id): JsonResponse
+    #[OA\Get(
+        path: '/api/v1/posts/{id}/history',
+        summary: 'Riwayat edit post (pemilik atau moderator)',
+        security: [['bearerAuth' => []]],
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(response: 200, description: 'Riwayat edit post')]
+    #[OA\Response(response: 403, description: 'Akses ditolak')]
+    #[OA\Response(response: 404, description: 'Post tidak ditemukan')]
+    public function history(Request $request, string $id): JsonResponse
     {
         try {
             $post = Post::findOrFail($id);
+
+            $user = $request->user();
+            $isOwner = $post->user_id === $user->id;
+            $isModerator = $user->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
+
+            if (! $isOwner && ! $isModerator) {
+                return $this->forbidden();
+            }
 
             $histories = $post->editHistories()
                 ->with('editor:id,username')

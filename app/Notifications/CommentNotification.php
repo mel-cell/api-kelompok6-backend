@@ -11,13 +11,13 @@ class CommentNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public $queue = 'notifications';
-
     public function __construct(
         public User $actor,
         public string $postId,
         public string $postTitle,
-    ) {}
+    ) {
+        $this->queue = 'notifications';
+    }
 
     public function via(object $notifiable): array
     {
@@ -29,7 +29,7 @@ class CommentNotification extends Notification implements ShouldQueue
         return [
             'actor_id' => $this->actor->id,
             'actor_username' => $this->actor->username,
-            'actor_avatar_url' => $this->actor->avatar_url,
+            'actor_avatar_url' => $this->actor->avatar_url ? Storage::url($this->actor->avatar_url) : null,
             'type' => 'comment',
             'reference_id' => $this->postId,
             'reference_type' => 'post',

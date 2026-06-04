@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
+
 class UpdateProfileRequest extends ApiRequest
 {
     public function authorize(): bool
