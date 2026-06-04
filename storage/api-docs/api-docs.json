@@ -1537,10 +1537,18 @@
                     "200": {
                         "description": "Detail user berhasil diambil"
                     },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
                     "404": {
                         "description": "User tidak ditemukan"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/users/{id}/followers": {
@@ -1565,10 +1573,18 @@
                     "200": {
                         "description": "Daftar followers berhasil diambil"
                     },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
                     "404": {
                         "description": "User tidak ditemukan"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/users/{id}/following": {
@@ -1593,10 +1609,18 @@
                     "200": {
                         "description": "Daftar following berhasil diambil"
                     },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
                     "404": {
                         "description": "User tidak ditemukan"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/users/{id}/follow": {

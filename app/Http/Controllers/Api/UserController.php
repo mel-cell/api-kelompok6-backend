@@ -18,12 +18,17 @@ class UserController extends Controller
     #[OA\Get(
         path: '/api/v1/users/{id}',
         summary: 'Detail profil user',
+        security: [['bearerAuth' => []]],
         tags: ['Users']
     )]
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
         description: 'Detail user berhasil diambil'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
     )]
     #[OA\Response(
         response: 404,
@@ -47,12 +52,17 @@ class UserController extends Controller
     #[OA\Get(
         path: '/api/v1/users/{id}/followers',
         summary: 'Daftar followers user',
+        security: [['bearerAuth' => []]],
         tags: ['Users']
     )]
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
         description: 'Daftar followers berhasil diambil'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
     )]
     #[OA\Response(
         response: 404,
@@ -75,12 +85,17 @@ class UserController extends Controller
     #[OA\Get(
         path: '/api/v1/users/{id}/following',
         summary: 'Daftar following user',
+        security: [['bearerAuth' => []]],
         tags: ['Users']
     )]
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(
         response: 200,
         description: 'Daftar following berhasil diambil'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
     )]
     #[OA\Response(
         response: 404,
