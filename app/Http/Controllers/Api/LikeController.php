@@ -9,9 +9,33 @@ use App\Models\Post;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 class LikeController extends Controller
 {
+    #[OA\Post(
+        path: '/api/v1/posts/{postId}/like',
+        summary: 'Toggle like pada post',
+        security: [['bearerAuth' => []]],
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'postId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Like dihapus / status like berubah'
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Like berhasil ditambahkan'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan'
+    )]
     public function togglePost(Request $request, string $postId): JsonResponse
     {
         try {
@@ -43,6 +67,29 @@ class LikeController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/comments/{commentId}/like',
+        summary: 'Toggle like pada komentar',
+        security: [['bearerAuth' => []]],
+        tags: ['Comments']
+    )]
+    #[OA\Parameter(name: 'commentId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Like dihapus / status like berubah'
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Like berhasil ditambahkan'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Komentar tidak ditemukan'
+    )]
     public function toggleComment(Request $request, string $commentId): JsonResponse
     {
         try {

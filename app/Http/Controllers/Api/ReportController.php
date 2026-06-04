@@ -13,9 +13,19 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
 class ReportController extends Controller
 {
+    #[OA\Get(
+        path: '/api/v1/reports/reasons',
+        summary: 'Daftar alasan report',
+        tags: ['Reports']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Daftar alasan report'
+    )]
     public function reasons(): JsonResponse
     {
         try {
@@ -25,6 +35,36 @@ class ReportController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/reports',
+        summary: 'Buat laporan baru',
+        security: [['bearerAuth' => []]],
+        tags: ['Reports']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['target_id', 'target_type', 'reason'],
+            properties: [
+                new OA\Property(property: 'target_id', type: 'string', format: 'uuid'),
+                new OA\Property(property: 'target_type', type: 'string', enum: ['post', 'comment']),
+                new OA\Property(property: 'reason', type: 'string'),
+                new OA\Property(property: 'description', type: 'string', nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Laporan berhasil dikirim'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validasi gagal'
+    )]
     public function store(StoreReportRequest $request): JsonResponse
     {
         try {
@@ -49,6 +89,26 @@ class ReportController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/reports',
+        summary: 'Daftar semua laporan (moderator/admin)',
+        security: [['bearerAuth' => []]],
+        tags: ['Reports']
+    )]
+    #[OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['pending', 'resolved', 'dismissed']))]
+    #[OA\Parameter(name: 'target_type', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['post', 'comment']))]
+    #[OA\Response(
+        response: 200,
+        description: 'Daftar laporan'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak (bukan moderator/admin)'
+    )]
     public function index(Request $request): JsonResponse
     {
         try {
@@ -70,6 +130,29 @@ class ReportController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/reports/{id}',
+        summary: 'Detail laporan (moderator/admin)',
+        security: [['bearerAuth' => []]],
+        tags: ['Reports']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Detail laporan'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak (bukan moderator/admin)'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Laporan tidak ditemukan'
+    )]
     public function show(string $id): JsonResponse
     {
         try {
@@ -87,6 +170,39 @@ class ReportController extends Controller
         }
     }
 
+    #[OA\Patch(
+        path: '/api/v1/reports/{id}/resolve',
+        summary: 'Selesaikan laporan (moderator/admin)',
+        security: [['bearerAuth' => []]],
+        tags: ['Reports']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['status'],
+            properties: [
+                new OA\Property(property: 'status', type: 'string', enum: ['resolved', 'dismissed']),
+                new OA\Property(property: 'note', type: 'string', nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Laporan berhasil diupdate'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak (bukan moderator/admin)'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Laporan tidak ditemukan'
+    )]
     public function resolve(Request $request, string $id): JsonResponse
     {
         try {

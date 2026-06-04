@@ -126,6 +126,20 @@ class AuthController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/logout',
+        summary: 'Logout User',
+        security: [['bearerAuth' => []]],
+        tags: ['Authentication']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Logout berhasil'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
     public function logout(Request $request): JsonResponse
     {
         try {
@@ -137,6 +151,20 @@ class AuthController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/user',
+        summary: 'Profil User Saat Ini',
+        security: [['bearerAuth' => []]],
+        tags: ['Authentication']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Data profil user'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
     public function me(Request $request): JsonResponse
     {
         try {

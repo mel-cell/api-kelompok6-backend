@@ -149,6 +149,503 @@
                 }
             }
         },
+        "/api/v1/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout User",
+                "operationId": "b66dd8a7864f561822c01bc8339363fb",
+                "responses": {
+                    "200": {
+                        "description": "Logout berhasil"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Profil User Saat Ini",
+                "operationId": "b311aaca960ea95944a1f17db02b5219",
+                "responses": {
+                    "200": {
+                        "description": "Data profil user"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Daftar semua kategori",
+                "operationId": "52c3c8d702572c2b4347b0ecf7573e54",
+                "responses": {
+                    "200": {
+                        "description": "Daftar kategori berhasil diambil"
+                    }
+                }
+            }
+        },
+        "/api/v1/categories/{id}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Detail kategori",
+                "operationId": "11d2d45398d538612b1a4156d210652e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail kategori berhasil diambil"
+                    },
+                    "404": {
+                        "description": "Kategori tidak ditemukan"
+                    }
+                }
+            }
+        },
+        "/api/v1/posts/{postId}/comments": {
+            "get": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Daftar komentar dari sebuah post",
+                "operationId": "6eeda492cb18cb6e61fe4536380d7e18",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar komentar berhasil diambil"
+                    },
+                    "404": {
+                        "description": "Post tidak ditemukan"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Tambah komentar baru",
+                "operationId": "77beda184bdaff9c04d6899cf2524d64",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "body"
+                                ],
+                                "properties": {
+                                    "body": {
+                                        "type": "string",
+                                        "example": "Penjelasan yang bagus!"
+                                    },
+                                    "parent_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Komentar berhasil ditambahkan"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "404": {
+                        "description": "Post tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/comments/{id}": {
+            "put": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Update komentar (pemilik atau moderator)",
+                "operationId": "5321b3057f01a56cc8e7c62e5047a32e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "body"
+                                ],
+                                "properties": {
+                                    "body": {
+                                        "type": "string",
+                                        "example": "Komentar yang diedit..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Komentar diperbarui"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "403": {
+                        "description": "Akses ditolak"
+                    },
+                    "404": {
+                        "description": "Komentar tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Hapus komentar (pemilik atau moderator)",
+                "operationId": "18935c723149116e7339354edf38fef6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Komentar dihapus"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "403": {
+                        "description": "Akses ditolak"
+                    },
+                    "404": {
+                        "description": "Komentar tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/comments/{id}/history": {
+            "get": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Riwayat edit komentar (pemilik atau moderator)",
+                "operationId": "e56e11bb01614d17959fef7c549213c9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Riwayat edit komentar"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "403": {
+                        "description": "Akses ditolak"
+                    },
+                    "404": {
+                        "description": "Komentar tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/posts/{postId}/like": {
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Toggle like pada post",
+                "operationId": "c986f8b6ae5e56caaff5ed0d1bd4f47b",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Like dihapus / status like berubah"
+                    },
+                    "201": {
+                        "description": "Like berhasil ditambahkan"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "404": {
+                        "description": "Post tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/comments/{commentId}/like": {
+            "post": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Toggle like pada komentar",
+                "operationId": "e6d6b844673418f56ba76f6c582c641d",
+                "parameters": [
+                    {
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Like dihapus / status like berubah"
+                    },
+                    "201": {
+                        "description": "Like berhasil ditambahkan"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "404": {
+                        "description": "Komentar tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Daftar notifikasi user",
+                "operationId": "b5f7780e452f902c5152be76449f16ab",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar notifikasi"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/notifications/{id}/read": {
+            "patch": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Tandai satu notifikasi telah dibaca",
+                "operationId": "c0d6f7c02816d9bae0dc123710d7bc72",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notifikasi ditandai dibaca"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "404": {
+                        "description": "Notifikasi tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/notifications/read-all": {
+            "patch": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Tandai semua notifikasi telah dibaca",
+                "operationId": "8437ca4275ccc9982c4bebe6006fcde6",
+                "responses": {
+                    "200": {
+                        "description": "Semua notifikasi ditandai dibaca"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/notifications/unread-count": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Jumlah notifikasi belum dibaca",
+                "operationId": "969595cbd6e8cf41b44de2a2aebc3cea",
+                "responses": {
+                    "200": {
+                        "description": "Jumlah notifikasi belum dibaca"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/posts": {
             "get": {
                 "tags": [
@@ -517,6 +1014,751 @@
                     }
                 ]
             }
+        },
+        "/api/v1/profile": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Lihat profil sendiri",
+                "operationId": "840711b2cfe9f9c00a12c154bfb21787",
+                "responses": {
+                    "200": {
+                        "description": "Data profil"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update profil sendiri",
+                "operationId": "1197366c57f9434a5e5a316534ef5b20",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "budi"
+                                    },
+                                    "bio": {
+                                        "type": "string",
+                                        "example": "Seorang developer"
+                                    },
+                                    "avatar": {
+                                        "description": "File gambar avatar",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profil berhasil diperbarui"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/profile/avatar": {
+            "delete": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Hapus avatar sendiri",
+                "operationId": "4db7e81c33edfba06f652b0c21de9cb7",
+                "responses": {
+                    "200": {
+                        "description": "Avatar berhasil dihapus"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "404": {
+                        "description": "Tidak ada avatar untuk dihapus"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reports/reasons": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Daftar alasan report",
+                "operationId": "3a66f9cbdaf68b0bac47b06b80534643",
+                "responses": {
+                    "200": {
+                        "description": "Daftar alasan report"
+                    }
+                }
+            }
+        },
+        "/api/v1/reports": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Daftar semua laporan (moderator/admin)",
+                "operationId": "d48df8fac8c54e8bd5c1e01ba7655d6a",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "resolved",
+                                "dismissed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "target_type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "post",
+                                "comment"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar laporan"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "403": {
+                        "description": "Akses ditolak (bukan moderator/admin)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Buat laporan baru",
+                "operationId": "84a124ab4e2a780cf38adafd94ad20d5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "target_id",
+                                    "target_type",
+                                    "reason"
+                                ],
+                                "properties": {
+                                    "target_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "target_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "post",
+                                            "comment"
+                                        ]
+                                    },
+                                    "reason": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Laporan berhasil dikirim"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reports/{id}": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Detail laporan (moderator/admin)",
+                "operationId": "7a5c2489853a14d9b737d0b226d3832c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail laporan"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "403": {
+                        "description": "Akses ditolak (bukan moderator/admin)"
+                    },
+                    "404": {
+                        "description": "Laporan tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reports/{id}/resolve": {
+            "patch": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Selesaikan laporan (moderator/admin)",
+                "operationId": "0a212573d9f5af9ad2d0ae0df97bdec4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "resolved",
+                                            "dismissed"
+                                        ]
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Laporan berhasil diupdate"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "403": {
+                        "description": "Akses ditolak (bukan moderator/admin)"
+                    },
+                    "404": {
+                        "description": "Laporan tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/search/posts": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Cari post",
+                "operationId": "919c6e4e185c20436dc548029f55d415",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hasil pencarian post"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "422": {
+                        "description": "Validasi gagal (q minimal 2 karakter)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/search/comments": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Cari komentar",
+                "operationId": "3624baf0513be428c2727a1149d9d2e0",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hasil pencarian komentar"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "422": {
+                        "description": "Validasi gagal (q minimal 2 karakter)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/search/users": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Cari user",
+                "operationId": "03c869951fd3034b39e3edb992685fea",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hasil pencarian user"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "422": {
+                        "description": "Validasi gagal (q minimal 2 karakter)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tags": {
+            "get": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Daftar semua tag",
+                "operationId": "a14dfc81ce7a7e3a508e1335d6fb21b5",
+                "responses": {
+                    "200": {
+                        "description": "Daftar tag berhasil diambil"
+                    }
+                }
+            }
+        },
+        "/api/v1/tags/{id}": {
+            "get": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Detail tag",
+                "operationId": "6d53cd01174aa367f86c6569c3bfb00b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail tag berhasil diambil"
+                    },
+                    "404": {
+                        "description": "Tag tidak ditemukan"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Detail profil user",
+                "operationId": "0197efcfd303b59ccdaad3e01097a0e0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail user berhasil diambil"
+                    },
+                    "404": {
+                        "description": "User tidak ditemukan"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}/followers": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Daftar followers user",
+                "operationId": "38d80c84cd3e0ea24dad11392db2c448",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar followers berhasil diambil"
+                    },
+                    "404": {
+                        "description": "User tidak ditemukan"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}/following": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Daftar following user",
+                "operationId": "53e2db34dec79aebc91e586a23b8ea5f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar following berhasil diambil"
+                    },
+                    "404": {
+                        "description": "User tidak ditemukan"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}/follow": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Toggle follow/unfollow user",
+                "operationId": "c328cde59e4b3cac51b99b48634463c7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Follow atau unfollow berhasil"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "404": {
+                        "description": "User tidak ditemukan"
+                    },
+                    "422": {
+                        "description": "Tidak bisa follow diri sendiri"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/posts/{postId}/vote": {
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Toggle vote (upvote/downvote) pada post",
+                "operationId": "fc365c223f0ca92e3b1daf960e798f29",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "vote_type"
+                                ],
+                                "properties": {
+                                    "vote_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "upvote",
+                                            "downvote"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Vote dihapus atau diubah"
+                    },
+                    "201": {
+                        "description": "Vote berhasil ditambahkan"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "404": {
+                        "description": "Post tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/comments/{commentId}/vote": {
+            "post": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Toggle vote (upvote/downvote) pada komentar",
+                "operationId": "1ab8045122658cd0d73c50d252d111da",
+                "parameters": [
+                    {
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "vote_type"
+                                ],
+                                "properties": {
+                                    "vote_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "upvote",
+                                            "downvote"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Vote dihapus atau diubah"
+                    },
+                    "201": {
+                        "description": "Vote berhasil ditambahkan"
+                    },
+                    "401": {
+                        "description": "Tidak terautentikasi"
+                    },
+                    "404": {
+                        "description": "Komentar tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -534,8 +1776,40 @@
             "description": "Authentication"
         },
         {
+            "name": "Categories",
+            "description": "Categories"
+        },
+        {
+            "name": "Comments",
+            "description": "Comments"
+        },
+        {
             "name": "Posts",
             "description": "Posts"
+        },
+        {
+            "name": "Notifications",
+            "description": "Notifications"
+        },
+        {
+            "name": "Profile",
+            "description": "Profile"
+        },
+        {
+            "name": "Reports",
+            "description": "Reports"
+        },
+        {
+            "name": "Search",
+            "description": "Search"
+        },
+        {
+            "name": "Tags",
+            "description": "Tags"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
         }
     ]
 }

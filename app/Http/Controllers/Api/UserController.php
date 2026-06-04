@@ -11,9 +11,24 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use OpenApi\Attributes as OA;
 
 class UserController extends Controller
 {
+    #[OA\Get(
+        path: '/api/v1/users/{id}',
+        summary: 'Detail profil user',
+        tags: ['Users']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Detail user berhasil diambil'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'User tidak ditemukan'
+    )]
     public function show(string $id): JsonResponse
     {
         try {
@@ -29,6 +44,20 @@ class UserController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/users/{id}/followers',
+        summary: 'Daftar followers user',
+        tags: ['Users']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Daftar followers berhasil diambil'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'User tidak ditemukan'
+    )]
     public function followers(string $id): JsonResponse
     {
         try {
@@ -43,6 +72,20 @@ class UserController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/users/{id}/following',
+        summary: 'Daftar following user',
+        tags: ['Users']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Daftar following berhasil diambil'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'User tidak ditemukan'
+    )]
     public function following(string $id): JsonResponse
     {
         try {
@@ -57,6 +100,29 @@ class UserController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/users/{id}/follow',
+        summary: 'Toggle follow/unfollow user',
+        security: [['bearerAuth' => []]],
+        tags: ['Users']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Follow atau unfollow berhasil'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'User tidak ditemukan'
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Tidak bisa follow diri sendiri'
+    )]
     public function toggleFollow(Request $request, string $id): JsonResponse
     {
         try {

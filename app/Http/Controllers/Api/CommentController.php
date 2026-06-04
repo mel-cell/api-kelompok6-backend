@@ -15,9 +15,24 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use OpenApi\Attributes as OA;
 
 class CommentController extends Controller
 {
+    #[OA\Get(
+        path: '/api/v1/posts/{postId}/comments',
+        summary: 'Daftar komentar dari sebuah post',
+        tags: ['Comments']
+    )]
+    #[OA\Parameter(name: 'postId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Daftar komentar berhasil diambil'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan'
+    )]
     public function index(string $postId): JsonResponse
     {
         try {
@@ -40,6 +55,35 @@ class CommentController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/posts/{postId}/comments',
+        summary: 'Tambah komentar baru',
+        security: [['bearerAuth' => []]],
+        tags: ['Comments']
+    )]
+    #[OA\Parameter(name: 'postId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['body'],
+            properties: [
+                new OA\Property(property: 'body', type: 'string', example: 'Penjelasan yang bagus!'),
+                new OA\Property(property: 'parent_id', type: 'string', format: 'uuid', nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Komentar berhasil ditambahkan'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan'
+    )]
     public function store(StoreCommentRequest $request, string $postId): JsonResponse
     {
         try {
@@ -72,6 +116,38 @@ class CommentController extends Controller
         }
     }
 
+    #[OA\Put(
+        path: '/api/v1/comments/{id}',
+        summary: 'Update komentar (pemilik atau moderator)',
+        security: [['bearerAuth' => []]],
+        tags: ['Comments']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['body'],
+            properties: [
+                new OA\Property(property: 'body', type: 'string', example: 'Komentar yang diedit...'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Komentar diperbarui'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Komentar tidak ditemukan'
+    )]
     public function update(UpdateCommentRequest $request, string $id): JsonResponse
     {
         try {
@@ -104,6 +180,29 @@ class CommentController extends Controller
         }
     }
 
+    #[OA\Delete(
+        path: '/api/v1/comments/{id}',
+        summary: 'Hapus komentar (pemilik atau moderator)',
+        security: [['bearerAuth' => []]],
+        tags: ['Comments']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Komentar dihapus'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Komentar tidak ditemukan'
+    )]
     public function destroy(Request $request, string $id): JsonResponse
     {
         try {
@@ -127,6 +226,29 @@ class CommentController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/comments/{id}/history',
+        summary: 'Riwayat edit komentar (pemilik atau moderator)',
+        security: [['bearerAuth' => []]],
+        tags: ['Comments']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Riwayat edit komentar'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Akses ditolak'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Komentar tidak ditemukan'
+    )]
     public function history(Request $request, string $id): JsonResponse
     {
         try {

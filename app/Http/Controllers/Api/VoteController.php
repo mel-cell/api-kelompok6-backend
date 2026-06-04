@@ -12,9 +12,42 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
 class VoteController extends Controller
 {
+    #[OA\Post(
+        path: '/api/v1/posts/{postId}/vote',
+        summary: 'Toggle vote (upvote/downvote) pada post',
+        security: [['bearerAuth' => []]],
+        tags: ['Posts']
+    )]
+    #[OA\Parameter(name: 'postId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['vote_type'],
+            properties: [
+                new OA\Property(property: 'vote_type', type: 'string', enum: ['upvote', 'downvote']),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Vote dihapus atau diubah'
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Vote berhasil ditambahkan'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Post tidak ditemukan'
+    )]
     public function togglePost(Request $request, string $postId): JsonResponse
     {
         try {
@@ -84,6 +117,38 @@ class VoteController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/comments/{commentId}/vote',
+        summary: 'Toggle vote (upvote/downvote) pada komentar',
+        security: [['bearerAuth' => []]],
+        tags: ['Comments']
+    )]
+    #[OA\Parameter(name: 'commentId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['vote_type'],
+            properties: [
+                new OA\Property(property: 'vote_type', type: 'string', enum: ['upvote', 'downvote']),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Vote dihapus atau diubah'
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Vote berhasil ditambahkan'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Komentar tidak ditemukan'
+    )]
     public function toggleComment(Request $request, string $commentId): JsonResponse
     {
         try {

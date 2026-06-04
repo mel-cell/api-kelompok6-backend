@@ -8,9 +8,19 @@ use App\Models\Category;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
+use OpenApi\Attributes as OA;
 
 class CategoryController extends Controller
 {
+    #[OA\Get(
+        path: '/api/v1/categories',
+        summary: 'Daftar semua kategori',
+        tags: ['Categories']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Daftar kategori berhasil diambil'
+    )]
     public function index(): JsonResponse
     {
         try {
@@ -28,6 +38,20 @@ class CategoryController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/categories/{id}',
+        summary: 'Detail kategori',
+        tags: ['Categories']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Detail kategori berhasil diambil'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Kategori tidak ditemukan'
+    )]
     public function show(string $id): JsonResponse
     {
         try {

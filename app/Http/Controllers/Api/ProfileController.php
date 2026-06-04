@@ -9,9 +9,24 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use OpenApi\Attributes as OA;
 
 class ProfileController extends Controller
 {
+    #[OA\Get(
+        path: '/api/v1/profile',
+        summary: 'Lihat profil sendiri',
+        security: [['bearerAuth' => []]],
+        tags: ['Profile']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Data profil'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
     public function show(Request $request): JsonResponse
     {
         try {
@@ -21,6 +36,34 @@ class ProfileController extends Controller
         }
     }
 
+    #[OA\Put(
+        path: '/api/v1/profile',
+        summary: 'Update profil sendiri',
+        security: [['bearerAuth' => []]],
+        tags: ['Profile']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'username', type: 'string', example: 'budi'),
+                new OA\Property(property: 'bio', type: 'string', example: 'Seorang developer'),
+                new OA\Property(property: 'avatar', type: 'string', format: 'binary', description: 'File gambar avatar'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Profil berhasil diperbarui'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validasi gagal'
+    )]
     public function update(UpdateProfileRequest $request): JsonResponse
     {
         try {
@@ -49,6 +92,24 @@ class ProfileController extends Controller
         }
     }
 
+    #[OA\Delete(
+        path: '/api/v1/profile/avatar',
+        summary: 'Hapus avatar sendiri',
+        security: [['bearerAuth' => []]],
+        tags: ['Profile']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Avatar berhasil dihapus'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Tidak ada avatar untuk dihapus'
+    )]
     public function destroyAvatar(Request $request): JsonResponse
     {
         try {

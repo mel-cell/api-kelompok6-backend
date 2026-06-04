@@ -12,9 +12,30 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
 class SearchController extends Controller
 {
+    #[OA\Get(
+        path: '/api/v1/search/posts',
+        summary: 'Cari post',
+        security: [['bearerAuth' => []]],
+        tags: ['Search']
+    )]
+    #[OA\Parameter(name: 'q', in: 'query', required: true, schema: new OA\Schema(type: 'string', minLength: 2))]
+    #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15))]
+    #[OA\Response(
+        response: 200,
+        description: 'Hasil pencarian post'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validasi gagal (q minimal 2 karakter)'
+    )]
     public function posts(Request $request): JsonResponse
     {
         try {
@@ -34,6 +55,26 @@ class SearchController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/search/comments',
+        summary: 'Cari komentar',
+        security: [['bearerAuth' => []]],
+        tags: ['Search']
+    )]
+    #[OA\Parameter(name: 'q', in: 'query', required: true, schema: new OA\Schema(type: 'string', minLength: 2))]
+    #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15))]
+    #[OA\Response(
+        response: 200,
+        description: 'Hasil pencarian komentar'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validasi gagal (q minimal 2 karakter)'
+    )]
     public function comments(Request $request): JsonResponse
     {
         try {
@@ -53,6 +94,26 @@ class SearchController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/v1/search/users',
+        summary: 'Cari user',
+        security: [['bearerAuth' => []]],
+        tags: ['Search']
+    )]
+    #[OA\Parameter(name: 'q', in: 'query', required: true, schema: new OA\Schema(type: 'string', minLength: 2))]
+    #[OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15))]
+    #[OA\Response(
+        response: 200,
+        description: 'Hasil pencarian user'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi'
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validasi gagal (q minimal 2 karakter)'
+    )]
     public function users(Request $request): JsonResponse
     {
         try {
