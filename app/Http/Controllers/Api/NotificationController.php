@@ -191,4 +191,92 @@ class NotificationController extends Controller
             return $this->error('Terjadi kesalahan server', 500);
         }
     }
+
+    #[OA\Delete(
+        path: '/api/v1/notifications/{id}',
+        summary: 'Hapus satu notifikasi',
+        security: [['bearerAuth' => []]],
+        tags: ['Notifications']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Notifikasi berhasil dihapus',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Notifikasi berhasil dihapus'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Notifikasi tidak ditemukan',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Data tidak ditemukan'),
+            ]
+        )
+    )]
+    public function destroy(Request $request, string $id): JsonResponse
+    {
+        try {
+            $notification = $request->user()->notifications()->findOrFail($id);
+            $notification->delete();
+
+            return $this->ok(null, 'Notifikasi berhasil dihapus');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    #[OA\Delete(
+        path: '/api/v1/notifications',
+        summary: 'Hapus semua notifikasi user',
+        security: [['bearerAuth' => []]],
+        tags: ['Notifications']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Semua notifikasi berhasil dihapus',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Semua notifikasi berhasil dihapus'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
+    )]
+    public function destroyAll(Request $request): JsonResponse
+    {
+        try {
+            $request->user()->notifications()->delete();
+
+            return $this->ok(null, 'Semua notifikasi berhasil dihapus');
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
 }

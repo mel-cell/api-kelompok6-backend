@@ -186,4 +186,52 @@ class ProfileController extends Controller
             Storage::disk('public')->delete($user->avatar_url);
         }
     }
+
+    #[OA\Delete(
+        path: '/api/v1/profile',
+        summary: 'Hapus akun sendiri',
+        security: [['bearerAuth' => []]],
+        tags: ['Profile']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Akun berhasil dihapus',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Akun berhasil dihapus'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
+    )]
+    public function destroy(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            $this->deleteOldAvatar($user);
+
+            $user->tokens()->delete();
+            $user->update([
+                'is_banned' => true,
+                'username' => 'deleted_' . $user->id,
+                'email' => 'deleted_' . $user->id . '@deleted.com',
+                'avatar_url' => null,
+                'bio' => null,
+            ]);
+
+            return $this->ok(null, 'Akun berhasil dihapus');
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
 }

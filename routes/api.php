@@ -25,6 +25,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::put('/profile', [ProfileController::class, 'update']);
         Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar']);
+        Route::delete('/profile', [ProfileController::class, 'destroy']);
 
         Route::get('/users/{user}', [UserController::class, 'show']);
         Route::post('/users/{user}/follow', [UserController::class, 'toggleFollow']);
@@ -39,7 +40,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/posts/{post}/history', [PostController::class, 'history']);
 
         Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::delete('/notifications', [NotificationController::class, 'destroyAll']);
         Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+        Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
         Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead']);
         Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
 
