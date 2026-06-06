@@ -7,7 +7,9 @@ use App\Http\Resources\TagResource;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 class TagController extends Controller
@@ -76,6 +78,80 @@ class TagController extends Controller
             });
 
             return $this->resource(new TagResource($tag));
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'required|string|max:255|unique:tags,slug',
+                'color' => 'nullable|string|max:7',
+            ]);
+
+            $tag = Tag::create([
+                'name' => $request->name,
+                'slug' => $request->slug,
+                'color' => $request->color ?? '#6366f1',
+                'usage_count' => 0,
+            ]);
+
+            Cache::forget('tags_all');
+
+            return $this->resource(new TagResource($tag), 'Tag berhasil dibuat', 201);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        try {
+            $tag = Tag::findOrFail($id);
+
+            $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'slug' => 'sometimes|string|max:255|unique:tags,slug,' . $id,
+                'color' => 'nullable|string|max:7',
+            ]);
+
+            $tag->update($request->only(['name', 'slug', 'color']));
+
+            Cache::forget('tags_all');
+            Cache::forget("tag_{$id}");
+
+            return $this->resource(new TagResource($tag->fresh()), 'Tag berhasil diperbarui');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function destroy(string $id): JsonResponse
+    {
+        try {
+            $tag = Tag::withCount('posts')->findOrFail($id);
+
+            if ($tag->posts_count > 0) {
+                return $this->error('Tag digunakan oleh postingan, tidak bisa dihapus.', 422);
+            }
+
+            $tag->delete();
+
+            Cache::forget('tags_all');
+            Cache::forget("tag_{$id}");
+
+            return $this->ok(null, 'Tag berhasil dihapus');
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {

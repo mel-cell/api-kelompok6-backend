@@ -68,12 +68,14 @@ class PostController extends Controller
                 $query->whereIn('id', $ids);
             }
 
-            if ($request->filled('category')) {
-                $query->whereHas('category', fn ($q) => $q->where('slug', $request->category));
+            $category = $request->input('filter.category', $request->category);
+            if ($category) {
+                $query->whereHas('category', fn ($q) => $q->where('slug', $category));
             }
 
-            if ($request->filled('tag')) {
-                $query->whereHas('tags', fn ($q) => $q->where('slug', $request->tag));
+            $tag = $request->input('filter.tag', $request->tag);
+            if ($tag) {
+                $query->whereHas('tags', fn ($q) => $q->where('slug', $tag));
             }
 
             if ($request->filled('user')) {

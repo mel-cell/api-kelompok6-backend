@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Validation\Rule;
 
 class StoreReportRequest extends ApiRequest
@@ -25,6 +26,7 @@ class StoreReportRequest extends ApiRequest
                     $model = match ($type) {
                         'post' => Post::class,
                         'comment' => Comment::class,
+                        'user' => User::class,
                         default => null,
                     };
                     if (! $model || ! $model::where('id', $value)->exists()) {
@@ -32,7 +34,7 @@ class StoreReportRequest extends ApiRequest
                     }
                 },
             ],
-            'target_type' => ['required', 'string', Rule::in(['post', 'comment'])],
+            'target_type' => ['required', 'string', Rule::in(['post', 'comment', 'user'])],
             'reason' => ['required', 'string', Rule::in($validReasons)],
             'description' => ['nullable', 'string', 'max:1000'],
         ];

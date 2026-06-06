@@ -100,7 +100,7 @@ class VoteController extends Controller
                     $post->vote_score += $delta;
                     $post->save();
 
-                    VoteCast::dispatch($post->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', -2, $post->id, 'post');
+                    VoteCast::dispatch($post->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', -10, $post->id, 'post');
 
                     if ($post->user_id !== $user->id) {
                         $post->user->notify(new VoteNotification($user, $request->vote_type, $post->id, 'post'));
@@ -113,7 +113,7 @@ class VoteController extends Controller
                 $post->vote_score += $request->vote_type === 'upvote' ? 2 : -2;
                 $post->save();
 
-                VoteCast::dispatch($post->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', $request->vote_type === 'upvote' ? 4 : -4, $post->id, 'post');
+                VoteCast::dispatch($post->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', $request->vote_type === 'upvote' ? 20 : -20, $post->id, 'post');
 
                 if ($post->user_id !== $user->id) {
                     $post->user->notify(new VoteNotification($user, $request->vote_type, $post->id, 'post'));
@@ -133,7 +133,7 @@ class VoteController extends Controller
             $post->vote_score += $delta;
             $post->save();
 
-            VoteCast::dispatch($post->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', $request->vote_type === 'upvote' ? 2 : -2, $post->id, 'post');
+            VoteCast::dispatch($post->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', $request->vote_type === 'upvote' ? 10 : -2, $post->id, 'post');
 
             if ($post->user_id !== $user->id) {
                 $post->user->notify(new VoteNotification($user, $request->vote_type, $post->id, 'post'));
@@ -233,7 +233,7 @@ class VoteController extends Controller
                     $comment->vote_score += $delta;
                     $comment->save();
 
-                    VoteCast::dispatch($comment->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', -2, $comment->id, 'comment');
+                    VoteCast::dispatch($comment->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', -5, $comment->id, 'comment');
 
                     if ($comment->user_id !== $user->id) {
                         $comment->user->notify(new VoteNotification($user, $request->vote_type, $comment->id, 'comment'));
@@ -246,7 +246,7 @@ class VoteController extends Controller
                 $comment->vote_score += $request->vote_type === 'upvote' ? 2 : -2;
                 $comment->save();
 
-                VoteCast::dispatch($comment->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', $request->vote_type === 'upvote' ? 4 : -4, $comment->id, 'comment');
+                VoteCast::dispatch($comment->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', $request->vote_type === 'upvote' ? 10 : -10, $comment->id, 'comment');
 
                 if ($comment->user_id !== $user->id) {
                     $comment->user->notify(new VoteNotification($user, $request->vote_type, $comment->id, 'comment'));
@@ -266,7 +266,7 @@ class VoteController extends Controller
             $comment->vote_score += $delta;
             $comment->save();
 
-            VoteCast::dispatch($comment->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', $request->vote_type === 'upvote' ? 2 : -2, $comment->id, 'comment');
+            VoteCast::dispatch($comment->user, $request->vote_type === 'upvote' ? 'upvote_received' : 'downvote_received', $request->vote_type === 'upvote' ? 5 : -1, $comment->id, 'comment');
 
             if ($comment->user_id !== $user->id) {
                 $comment->user->notify(new VoteNotification($user, $request->vote_type, $comment->id, 'comment'));

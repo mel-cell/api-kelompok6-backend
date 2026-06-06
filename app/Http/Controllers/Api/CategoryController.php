@@ -7,7 +7,10 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 class CategoryController extends Controller
@@ -82,6 +85,83 @@ class CategoryController extends Controller
             });
 
             return $this->resource(new CategoryResource($category));
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'required|string|max:255|unique:categories,slug',
+                'description' => 'nullable|string|max:1000',
+                'parent_id' => 'nullable|string|exists:categories,id',
+            ]);
+
+            $category = Category::create([
+                'name' => $request->name,
+                'slug' => $request->slug,
+                'description' => $request->description,
+                'parent_id' => $request->parent_id,
+            ]);
+
+            Cache::forget('categories_all');
+
+            return $this->resource(new CategoryResource($category->load('children')), 'Kategori berhasil dibuat', 201);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        try {
+            $category = Category::findOrFail($id);
+
+            $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'slug' => 'sometimes|string|max:255|unique:categories,slug,' . $id,
+                'description' => 'nullable|string|max:1000',
+                'parent_id' => 'nullable|string|exists:categories,id',
+            ]);
+
+            $category->update($request->only(['name', 'slug', 'description', 'parent_id']));
+
+            Cache::forget('categories_all');
+            Cache::forget("category_{$id}");
+
+            return $this->resource(new CategoryResource($category->fresh()->load('children')), 'Kategori berhasil diperbarui');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function destroy(string $id): JsonResponse
+    {
+        try {
+            $category = Category::withCount('posts')->findOrFail($id);
+
+            if ($category->posts_count > 0) {
+                return $this->error('Kategori memiliki postingan, tidak bisa dihapus.', 422);
+            }
+
+            Category::where('parent_id', $id)->update(['parent_id' => null]);
+            $category->delete();
+
+            Cache::forget('categories_all');
+            Cache::forget("category_{$id}");
+
+            return $this->ok(null, 'Kategori berhasil dihapus');
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {

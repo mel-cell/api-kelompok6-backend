@@ -65,6 +65,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/reports', [ReportController::class, 'index']);
         Route::get('/reports/{report}', [ReportController::class, 'show']);
         Route::patch('/reports/{report}/resolve', [ReportController::class, 'resolve']);
+
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories/{category}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+
+        Route::post('/tags', [TagController::class, 'store']);
+        Route::put('/tags/{tag}', [TagController::class, 'update']);
+        Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
     });
 
     Route::get('/categories', [CategoryController::class, 'index']);

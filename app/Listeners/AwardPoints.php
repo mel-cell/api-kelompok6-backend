@@ -30,10 +30,15 @@ class AwardPoints implements ShouldQueue
     protected function calculateLevel(int $points): int
     {
         return match (true) {
-            $points >= 1000 => 5,
-            $points >= 600 => 4,
-            $points >= 300 => 3,
-            $points >= 100 => 2,
+            $points >= 3500 => 10,
+            $points >= 2500 => 9,
+            $points >= 1800 => 8,
+            $points >= 1200 => 7,
+            $points >= 800  => 6,
+            $points >= 500  => 5,
+            $points >= 300  => 4,
+            $points >= 150  => 3,
+            $points >= 50   => 2,
             default => 1,
         };
     }
@@ -42,13 +47,13 @@ class AwardPoints implements ShouldQueue
     {
         match (true) {
             $event instanceof PostCreated => $this->award(
-                $event->post->user, 10, 'post_created', $event->post->id, 'Membuat post baru'
+                $event->post->user, 2, 'post_created', $event->post->id, 'Membuat post baru'
             ),
             $event instanceof CommentCreated => $this->award(
-                $event->comment->user, 5, 'comment_created', $event->comment->id, 'Menambahkan komentar'
+                $event->comment->user, 1, 'comment_created', $event->comment->id, 'Menambahkan komentar'
             ),
             $event instanceof AnswerAccepted => $this->award(
-                $event->comment->user, 20, 'answer_accepted', $event->comment->id, 'Jawaban diterima'
+                $event->comment->user, 15, 'answer_accepted', $event->comment->id, 'Jawaban diterima'
             ),
             $event instanceof VoteCast => $this->award(
                 $event->targetOwner, $event->pointsDelta, $event->actionType, $event->referenceId, null
