@@ -23,7 +23,15 @@ class AwardPoints implements ShouldQueue
         ]);
 
         $user->increment('reputation_points', $points);
-        $user->level = $this->calculateLevel($user->fresh()->reputation_points);
+        $newPoints = $user->fresh()->reputation_points;
+        $user->level = $this->calculateLevel($newPoints);
+
+        if ($newPoints < -90) {
+            $user->is_banned = true;
+        } elseif ($user->is_banned && $newPoints >= -90) {
+            $user->is_banned = false;
+        }
+
         $user->save();
     }
 
@@ -34,11 +42,11 @@ class AwardPoints implements ShouldQueue
             $points >= 2500 => 9,
             $points >= 1800 => 8,
             $points >= 1200 => 7,
-            $points >= 800  => 6,
-            $points >= 500  => 5,
-            $points >= 300  => 4,
-            $points >= 150  => 3,
-            $points >= 50   => 2,
+            $points >= 800 => 6,
+            $points >= 500 => 5,
+            $points >= 300 => 4,
+            $points >= 150 => 3,
+            $points >= 50 => 2,
             default => 1,
         };
     }

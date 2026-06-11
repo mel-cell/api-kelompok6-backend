@@ -86,6 +86,13 @@ class PostController extends Controller
                 $query->where('status', $request->status);
             }
 
+            if ($request->boolean('bookmarked')) {
+                $user = $request->user('sanctum');
+                if ($user) {
+                    $query->whereHas('bookmarks', fn ($q) => $q->where('user_id', $user->id));
+                }
+            }
+
             $allowedSorts = ['created_at', 'title', 'view_count', 'vote_score'];
             $sortField = in_array($request->sort, $allowedSorts) ? $request->sort : 'created_at';
             $sortDir = strtolower($request->order ?? '') === 'asc' ? 'asc' : 'desc';

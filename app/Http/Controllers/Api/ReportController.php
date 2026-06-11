@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReportRequest;
 use App\Http\Resources\ReportResource;
+use App\Models\Comment;
+use App\Models\PointsLog;
+use App\Models\Post;
 use App\Models\Report;
 use App\Models\User;
 use App\Notifications\ReportCreatedNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
@@ -335,6 +339,29 @@ class ReportController extends Controller
                 'resolved_by' => $request->user()->id,
                 'resolved_at' => now(),
             ]);
+
+            if ($request->status === 'resolved') {
+                DB::transaction(function () use ($report) {
+                    $targetOwner = match ($report->target_type) {
+                        'user' => User::find($report->target_id),
+                        'post' => Post::find($report->target_id)?->user,
+                        'comment' => Comment::find($report->target_id)?->post?->user,
+                        default => null,
+                    };
+
+                    if ($targetOwner && $targetOwner->id !== $report->reporter_id) {
+                        PointsLog::create([
+                            'user_id' => $targetOwner->id,
+                            'points' => -5,
+                            'action_type' => 'report_resolved',
+                            'reference_id' => $report->id,
+                            'description' => 'Laporan diselesaikan: '.$report->reason,
+                        ]);
+
+                        $targetOwner->decrement('reputation_points', 5);
+                    }
+                });
+            }
 
             return $this->resource(new ReportResource($report->fresh()->load(['reporter:id,username', 'resolver:id,username'])), 'Laporan berhasil diupdate.');
         } catch (ValidationException $e) {

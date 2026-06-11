@@ -119,11 +119,21 @@ class CommentController extends Controller
     public function store(StoreCommentRequest $request, string $postId): JsonResponse
     {
         try {
+            $user = $request->user();
+
+            if ($user->reputation_points < -50) {
+                return $this->forbidden('Reputasi kamu terlalu rendah untuk berkomentar');
+            }
+
+            if ($user->reputation_points < -20) {
+                session()->flash('reputation_warning', true);
+            }
+
             $post = Post::findOrFail($postId);
 
             $comment = Comment::create([
                 'post_id' => $post->id,
-                'user_id' => $request->user()->id,
+                'user_id' => $user->id,
                 'parent_id' => $request->parent_id,
                 'body' => $request->body,
             ]);

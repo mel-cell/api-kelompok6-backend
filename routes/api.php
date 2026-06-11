@@ -27,6 +27,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar']);
         Route::delete('/profile', [ProfileController::class, 'destroy']);
 
+        Route::get('/users/by-username/{username}', [UserController::class, 'byUsername']);
         Route::get('/users/{user}', [UserController::class, 'show']);
         Route::post('/users/{user}/follow', [UserController::class, 'toggleFollow']);
         Route::get('/users/{user}/followers', [UserController::class, 'followers']);
@@ -62,6 +63,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/reports/reasons', [ReportController::class, 'reasons']);
 
     Route::middleware(['auth:sanctum', 'role:moderator,admin', 'throttle:api'])->group(function () {
+        Route::get('/users', [UserController::class, 'index']);
+        Route::patch('/users/{user}/ban', [UserController::class, 'toggleBan']);
+
         Route::get('/reports', [ReportController::class, 'index']);
         Route::get('/reports/{report}', [ReportController::class, 'show']);
         Route::patch('/reports/{report}/resolve', [ReportController::class, 'resolve']);

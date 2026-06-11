@@ -273,4 +273,70 @@ class UserController extends Controller
             return $this->error('Terjadi kesalahan server', 500);
         }
     }
+
+    public function byUsername(string $username): JsonResponse
+    {
+        try {
+            $user = User::withCount(['followers', 'following', 'posts'])->with('roles')
+                ->where('username', $username)
+                ->firstOrFail();
+
+            return $this->resource(new UserResource($user));
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $query = User::with('roles')->withCount(['followers', 'following', 'posts']);
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('username', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('role')) {
+                $query->whereHas('roles', fn ($q) => $q->where('name', $request->role));
+            }
+
+            if ($request->has('is_banned')) {
+                $query->where('is_banned', $request->boolean('is_banned'));
+            }
+
+            $users = $query->orderBy('created_at', 'desc')->paginate($request->per_page ?? 20);
+
+            return $this->resource(UserResource::collection($users));
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function toggleBan(Request $request, string $id): JsonResponse
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($user->id === $request->user()->id) {
+                return $this->error('Tidak bisa ban diri sendiri', 422);
+            }
+
+            $user->update(['is_banned' => ! $user->is_banned]);
+            Cache::forget("user_{$id}");
+
+            $status = $user->is_banned ? 'di-ban' : 'di-unban';
+
+            return $this->ok(['is_banned' => $user->is_banned], "User berhasil {$status}");
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
 }
