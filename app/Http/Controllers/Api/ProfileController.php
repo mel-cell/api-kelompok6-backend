@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
@@ -60,6 +62,7 @@ class ProfileController extends Controller
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'username', type: 'string', example: 'budi'),
+                new OA\Property(property: 'email', type: 'string', example: 'budi@example.com'),
                 new OA\Property(property: 'bio', type: 'string', example: 'Seorang developer'),
                 new OA\Property(property: 'avatar', type: 'string', format: 'binary', description: 'File gambar avatar'),
             ]
@@ -101,7 +104,7 @@ class ProfileController extends Controller
     {
         try {
             $user = $request->user();
-            $data = $request->only(['username', 'bio']);
+            $data = $request->only(['username', 'email', 'bio']);
 
             if ($request->hasFile('avatar')) {
                 $this->deleteOldAvatar($user);
@@ -187,6 +190,47 @@ class ProfileController extends Controller
         }
     }
 
+    #[OA\Put(
+        path: '/api/v1/profile/password',
+        summary: 'Ubah password sendiri',
+        security: [['bearerAuth' => []]],
+        tags: ['Profile']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'current_password', type: 'string', example: 'password-lama'),
+                new OA\Property(property: 'password', type: 'string', example: 'password-baru'),
+                new OA\Property(property: 'password_confirmation', type: 'string', example: 'password-baru'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Password berhasil diubah',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Password berhasil diubah'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 401, description: 'Tidak terautentikasi')]
+    #[OA\Response(response: 422, description: 'Validasi gagal')]
+    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
+    {
+        try {
+            $request->user()->update([
+                'password_hash' => Hash::make($request->password),
+            ]);
+
+            return $this->ok(null, 'Password berhasil diubah');
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
     #[OA\Delete(
         path: '/api/v1/profile',
         summary: 'Hapus akun sendiri',
@@ -223,8 +267,8 @@ class ProfileController extends Controller
             $user->tokens()->delete();
             $user->update([
                 'is_banned' => true,
-                'username' => 'deleted_' . $user->id,
-                'email' => 'deleted_' . $user->id . '@deleted.com',
+                'username' => 'deleted_'.$user->id,
+                'email' => 'deleted_'.$user->id.'@deleted.com',
                 'avatar_url' => null,
                 'bio' => null,
             ]);

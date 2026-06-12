@@ -85,6 +85,54 @@ class TagController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/tags',
+        summary: 'Buat tag baru',
+        security: [['bearerAuth' => []]],
+        tags: ['Tags']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string', maxLength: 255, example: 'laravel'),
+                new OA\Property(property: 'slug', type: 'string', maxLength: 255, example: 'laravel'),
+                new OA\Property(property: 'color', type: 'string', maxLength: 7, nullable: true, example: '#ff2d20'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Tag berhasil dibuat',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Tag berhasil dibuat'),
+                new OA\Property(property: 'data', ref: '#/components/schemas/Tag'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Tidak terautentikasi',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Tidak terautentikasi'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validasi gagal',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: false),
+                new OA\Property(property: 'message', type: 'string', example: 'Validasi gagal'),
+                new OA\Property(property: 'errors', type: 'object'),
+            ]
+        )
+    )]
     public function store(Request $request): JsonResponse
     {
         try {
@@ -118,7 +166,7 @@ class TagController extends Controller
 
             $request->validate([
                 'name' => 'sometimes|string|max:255',
-                'slug' => 'sometimes|string|max:255|unique:tags,slug,' . $id,
+                'slug' => 'sometimes|string|max:255|unique:tags,slug,'.$id,
                 'color' => 'nullable|string|max:7',
             ]);
 

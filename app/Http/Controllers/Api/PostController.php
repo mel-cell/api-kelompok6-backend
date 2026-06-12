@@ -159,12 +159,14 @@ class PostController extends Controller
     public function store(StorePostRequest $request): JsonResponse
     {
         try {
-            $post = DB::transaction(function () use ($request) {
+            $body = strip_tags($request->body, Controller::ALLOWED_HTML_TAGS);
+
+            $post = DB::transaction(function () use ($request, $body) {
                 $post = Post::create([
                     'user_id' => $request->user()->id,
                     'category_id' => $request->category_id,
                     'title' => $request->title,
-                    'body' => $request->body,
+                    'body' => $body,
                 ]);
 
                 if ($request->filled('tags')) {
@@ -312,15 +314,21 @@ class PostController extends Controller
                 return $this->forbidden();
             }
 
-            $data = $request->only(['title', 'body', 'category_id']);
+            $body = $request->filled('body')
+                ? strip_tags($request->body, Controller::ALLOWED_HTML_TAGS)
+                : null;
+            $data = $request->only(['title', 'category_id']);
+            if ($body !== null) {
+                $data['body'] = $body;
+            }
 
-            DB::transaction(function () use ($request, $post, $data) {
-                if ($request->filled('body') && $request->body !== $post->body) {
+            DB::transaction(function () use ($request, $post, $data, $body) {
+                if ($body !== null && $body !== $post->body) {
                     PostEditHistory::create([
                         'post_id' => $post->id,
                         'edited_by' => $request->user()->id,
                         'body_before' => $post->body,
-                        'body_after' => $request->body,
+                        'body_after' => $body,
                         'reason' => $request->reason,
                     ]);
                 }

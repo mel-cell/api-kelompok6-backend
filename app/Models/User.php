@@ -47,6 +47,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function getAuthPassword(): string
+    {
+        return $this->password_hash;
+    }
+
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'user_roles')

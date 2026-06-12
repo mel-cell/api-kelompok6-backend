@@ -84,4 +84,71 @@ class ProfileTest extends TestCase
         $response = $this->withToken($this->token)->deleteJson('/api/v1/profile/avatar');
         $response->assertStatus(404);
     }
+
+    public function test_update_email_success(): void
+    {
+        $response = $this->withToken($this->token)->putJson('/api/v1/profile', [
+            'email' => 'baru@example.com',
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertEquals('baru@example.com', $this->user->fresh()->email);
+    }
+
+    public function test_update_password_success(): void
+    {
+        $response = $this->withToken($this->token)->putJson('/api/v1/profile/password', [
+            'current_password' => 'password',
+            'password' => 'passwordbaru',
+            'password_confirmation' => 'passwordbaru',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('message', 'Password berhasil diubah');
+    }
+
+    public function test_update_password_wrong_current(): void
+    {
+        $response = $this->withToken($this->token)->putJson('/api/v1/profile/password', [
+            'current_password' => 'salah',
+            'password' => 'passwordbaru',
+            'password_confirmation' => 'passwordbaru',
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_update_password_confirmation_mismatch(): void
+    {
+        $response = $this->withToken($this->token)->putJson('/api/v1/profile/password', [
+            'current_password' => 'password',
+            'password' => 'passwordbaru',
+            'password_confirmation' => 'tidakcocok',
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_profile_contains_email_for_owner(): void
+    {
+        $response = $this->withToken($this->token)->getJson('/api/v1/profile');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.email', 'budi@example.com');
+    }
+
+    public function test_profile_hides_email_for_others(): void
+    {
+        $other = User::create([
+            'username' => 'oranglain',
+            'email' => 'other@example.com',
+            'password_hash' => bcrypt('password'),
+        ]);
+        $otherToken = $other->createToken('auth-token')->plainTextToken;
+
+        $response = $this->withToken($otherToken)->getJson('/api/v1/users/'.$this->user->id);
+
+        $response->assertStatus(200);
+        $this->assertArrayNotHasKey('email', $response['data']);
+    }
 }

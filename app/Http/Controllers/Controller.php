@@ -27,9 +27,11 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(schema: 'User', properties: [
     new OA\Property(property: 'id', type: 'string', format: 'uuid'),
     new OA\Property(property: 'username', type: 'string'),
+    new OA\Property(property: 'email', type: 'string', nullable: true),
     new OA\Property(property: 'avatar_url', type: 'string', nullable: true),
     new OA\Property(property: 'bio', type: 'string', nullable: true),
     new OA\Property(property: 'reputation_points', type: 'integer'),
+    new OA\Property(property: 'level', type: 'integer'),
     new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
     new OA\Property(property: 'roles', type: 'array', items: new OA\Items(ref: '#/components/schemas/Role')),
     new OA\Property(property: 'followers_count', type: 'integer'),
@@ -109,4 +111,6 @@ use OpenApi\Attributes as OA;
 abstract class Controller
 {
     use ApiResponse;
+
+    public const ALLOWED_HTML_TAGS = '<p><br><b><i><u><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><blockquote><pre><code><span><div><img><a><hr><table><thead><tbody><tr><th><td>';
 }

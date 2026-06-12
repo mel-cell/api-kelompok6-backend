@@ -12,12 +12,14 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'email' => $this->when(auth()->id() === $this->id, $this->email),
             'username' => $this->username,
             'avatar_url' => $this->avatar_url
                 ? Storage::url($this->avatar_url)
                 : 'https://ui-avatars.com/api/?name='.urlencode($this->username).'&background=random&color=fff&size=200',
             'bio' => $this->bio,
             'reputation_points' => (int) $this->reputation_points,
+            'level' => (int) $this->level,
             'created_at' => $this->created_at,
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->map(fn ($r) => [
                 'id' => $r->id,

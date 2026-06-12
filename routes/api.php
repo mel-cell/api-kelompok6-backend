@@ -24,6 +24,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::put('/profile', [ProfileController::class, 'update']);
+        Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
         Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar']);
         Route::delete('/profile', [ProfileController::class, 'destroy']);
 
@@ -74,9 +75,13 @@ Route::prefix('v1')->group(function () {
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 
-        Route::post('/tags', [TagController::class, 'store']);
         Route::put('/tags/{tag}', [TagController::class, 'update']);
         Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
+    });
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/tags', [TagController::class, 'store']);
+        Route::post('/uploads/image', [UploadController::class, 'image']);
     });
 
     Route::get('/categories', [CategoryController::class, 'index']);
