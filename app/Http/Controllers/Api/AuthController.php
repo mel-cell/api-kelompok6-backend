@@ -64,6 +64,7 @@ class AuthController extends Controller
                 'username' => $request->username,
                 'email' => $request->email,
                 'password_hash' => Hash::make($request->password),
+                'reputation_points' => 10,
             ]);
 
             $userRole = Role::where('name', 'user')->first();

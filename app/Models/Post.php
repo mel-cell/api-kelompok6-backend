@@ -87,4 +87,14 @@ class Post extends Model
     {
         return $this->morphMany(Like::class, 'target');
     }
+
+    public function moderationLogs()
+    {
+        return $this->hasMany(ModerationLog::class);
+    }
+
+    public function latestModeration()
+    {
+        return $this->hasOne(ModerationLog::class)->latest('created_at');
+    }
 }

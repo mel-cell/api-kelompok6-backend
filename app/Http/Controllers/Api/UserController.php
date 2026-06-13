@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Follow;
+use App\Models\PointsLog;
+use App\Models\ShadowBan;
 use App\Models\User;
 use App\Notifications\FollowNotification;
+use App\Notifications\UserStatusNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -330,9 +333,69 @@ class UserController extends Controller
             $user->update(['is_banned' => ! $user->is_banned]);
             Cache::forget("user_{$id}");
 
+            $action = $user->is_banned ? 'banned' : 'unbanned';
+            $user->notify(new UserStatusNotification(
+                action: $action,
+                reason: null,
+                actor: $request->user(),
+            ));
+
             $status = $user->is_banned ? 'di-ban' : 'di-unban';
 
             return $this->ok(['is_banned' => $user->is_banned], "User berhasil {$status}");
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function shadowBan(Request $request, string $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'reason' => 'required|string|max:500',
+                'reputation_penalty' => 'required|integer|min:0|max:1000',
+                'restriction_type' => 'required|in:post,comment,both',
+                'restriction_duration' => 'required|integer|min:1|max:8760',
+            ]);
+
+            $user = User::findOrFail($id);
+
+            if ($user->id === $request->user()->id) {
+                return $this->error('Tidak bisa shadow ban diri sendiri', 422);
+            }
+
+            $expiresAt = now()->addHours((int) $validated['restriction_duration']);
+
+            ShadowBan::create([
+                'user_id' => $user->id,
+                'reason' => $validated['reason'],
+                'restriction_type' => $validated['restriction_type'],
+                'restriction_duration' => (int) $validated['restriction_duration'],
+                'expires_at' => $expiresAt,
+                'created_by' => $request->user()->id,
+            ]);
+
+            if ($validated['reputation_penalty'] > 0) {
+                $user->decrement('reputation_points', (int) $validated['reputation_penalty']);
+                PointsLog::create([
+                    'user_id' => $user->id,
+                    'points' => -((int) $validated['reputation_penalty']),
+                    'action_type' => 'shadow_ban',
+                    'description' => 'Shadow ban: '.$validated['reason'],
+                ]);
+            }
+
+            $user->notify(new UserStatusNotification(
+                action: 'shadow_banned',
+                reason: $validated['reason'],
+                actor: $request->user(),
+            ));
+
+            Cache::forget("user_{$id}");
+
+            return $this->ok(null, 'Shadow ban berhasil diterapkan');
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {

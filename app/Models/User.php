@@ -87,4 +87,42 @@ class User extends Authenticatable
     {
         return $this->hasMany(Bookmark::class);
     }
+
+    public function shadowBans()
+    {
+        return $this->hasMany(ShadowBan::class);
+    }
+
+    public function activeShadowBan()
+    {
+        return $this->shadowBans()
+            ->where('expires_at', '>', now())
+            ->latest('created_at')
+            ->first();
+    }
+
+    public function isShadowBanned(): bool
+    {
+        return $this->activeShadowBan() !== null;
+    }
+
+    public function canCreatePosts(): bool
+    {
+        $ban = $this->activeShadowBan();
+        if (! $ban) {
+            return true;
+        }
+
+        return $ban->restriction_type !== 'post' && $ban->restriction_type !== 'both';
+    }
+
+    public function canCreateComments(): bool
+    {
+        $ban = $this->activeShadowBan();
+        if (! $ban) {
+            return true;
+        }
+
+        return $ban->restriction_type !== 'comment' && $ban->restriction_type !== 'both';
+    }
 }

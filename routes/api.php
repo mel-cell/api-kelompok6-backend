@@ -40,6 +40,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/posts/{post}/accept/{comment}', [PostController::class, 'acceptAnswer']);
         Route::post('/posts/{post}/bookmark', [PostController::class, 'toggleBookmark']);
         Route::get('/posts/{post}/history', [PostController::class, 'history']);
+        Route::post('/posts/{post}/appeal', [PostController::class, 'appeal']);
 
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::delete('/notifications', [NotificationController::class, 'destroyAll']);
@@ -66,6 +67,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'role:moderator,admin', 'throttle:api'])->group(function () {
         Route::get('/users', [UserController::class, 'index']);
         Route::patch('/users/{user}/ban', [UserController::class, 'toggleBan']);
+        Route::patch('/users/{user}/shadow-ban', [UserController::class, 'shadowBan']);
 
         Route::get('/reports', [ReportController::class, 'index']);
         Route::get('/reports/{report}', [ReportController::class, 'show']);
@@ -77,6 +79,9 @@ Route::prefix('v1')->group(function () {
 
         Route::put('/tags/{tag}', [TagController::class, 'update']);
         Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
+
+        Route::post('/posts/{post}/moderate', [PostController::class, 'moderate']);
+        Route::post('/comments/{comment}/moderate', [CommentController::class, 'moderate']);
     });
 
     Route::middleware('auth:sanctum')->group(function () {

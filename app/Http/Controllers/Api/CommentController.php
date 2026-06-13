@@ -9,8 +9,10 @@ use App\Http\Requests\UpdateCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\CommentEditHistory;
+use App\Models\ModerationLog;
 use App\Models\Post;
 use App\Notifications\CommentNotification;
+use App\Notifications\ContentModeratedNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,15 +48,20 @@ class CommentController extends Controller
             ]
         )
     )]
-    public function index(string $postId): JsonResponse
+    public function index(Request $request, string $postId): JsonResponse
     {
         try {
             $post = Post::findOrFail($postId);
 
+            $user = $request->user();
+            $isModerator = $user && $user->roles?->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
+
             $comments = $post->comments()
+                ->when(! $isModerator, fn ($q) => $q->visible())
                 ->whereNull('parent_id')
-                ->with(['user:id,username,avatar_url', 'replies' => function ($q) {
-                    $q->with('user:id,username,avatar_url')->oldest();
+                ->with(['user:id,username,avatar_url', 'replies' => function ($q) use ($isModerator) {
+                    $q->when(! $isModerator, fn ($q) => $q->visible())
+                        ->with('user:id,username,avatar_url')->oldest();
                 }])
                 ->withCount('replies')
                 ->oldest()
@@ -120,6 +127,10 @@ class CommentController extends Controller
     {
         try {
             $user = $request->user();
+
+            if (! $user->canCreateComments()) {
+                return $this->forbidden('Kamu sedang dalam shadow ban dan tidak bisa berkomentar');
+            }
 
             if ($user->reputation_points < -50) {
                 return $this->forbidden('Reputasi kamu terlalu rendah untuk berkomentar');
@@ -310,6 +321,56 @@ class CommentController extends Controller
             $comment->delete();
 
             return $this->ok(null, 'Komentar dihapus');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function moderate(Request $request, string $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'action' => 'required|in:hide,restore',
+                'reason' => 'required_if:action,hide|string|max:1000',
+            ]);
+
+            $comment = Comment::findOrFail($id);
+            $moderator = $request->user();
+
+            $isModerator = $moderator->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
+            if (! $isModerator) {
+                return $this->forbidden();
+            }
+
+            $newStatus = $validated['action'] === 'hide' ? 'hidden' : 'visible';
+
+            $comment->update(['status' => $newStatus]);
+
+            ModerationLog::create([
+                'comment_id' => $comment->id,
+                'moderator_id' => $moderator->id,
+                'action' => $validated['action'],
+                'reason' => $validated['reason'] ?? null,
+            ]);
+
+            $comment->load('user');
+
+            if ($comment->user_id !== $moderator->id) {
+                $comment->user->notify(new ContentModeratedNotification(
+                    targetType: 'comment',
+                    targetId: $comment->id,
+                    targetTitle: mb_strlen($comment->body) > 100 ? mb_substr($comment->body, 0, 100).'...' : $comment->body,
+                    action: $validated['action'],
+                    reason: $validated['reason'] ?? null,
+                    moderator: $moderator,
+                ));
+            }
+
+            $actionLabel = $validated['action'] === 'hide' ? 'disembunyikan' : 'direstore';
+
+            return $this->ok(['status' => $newStatus], "Komentar berhasil {$actionLabel}");
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {

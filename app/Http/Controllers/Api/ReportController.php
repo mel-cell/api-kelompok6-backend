@@ -10,7 +10,9 @@ use App\Models\PointsLog;
 use App\Models\Post;
 use App\Models\Report;
 use App\Models\User;
+use App\Notifications\ContentModeratedNotification;
 use App\Notifications\ReportCreatedNotification;
+use App\Notifications\ReportResolvedNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -341,13 +343,28 @@ class ReportController extends Controller
             ]);
 
             if ($request->status === 'resolved') {
-                DB::transaction(function () use ($report) {
-                    $targetOwner = match ($report->target_type) {
-                        'user' => User::find($report->target_id),
-                        'post' => Post::find($report->target_id)?->user,
-                        'comment' => Comment::find($report->target_id)?->post?->user,
-                        default => null,
-                    };
+                DB::transaction(function () use ($report, $request) {
+                    $targetOwner = null;
+                    $targetTitle = null;
+
+                    if ($report->target_type === 'post') {
+                        $post = Post::find($report->target_id);
+                        if ($post) {
+                            $post->update(['status' => 'hidden']);
+                            $targetOwner = $post->user;
+                            $targetTitle = $post->title;
+                        }
+                    } elseif ($report->target_type === 'comment') {
+                        $comment = Comment::find($report->target_id);
+                        if ($comment) {
+                            $comment->update(['status' => 'hidden']);
+                            $targetOwner = $comment->user;
+                            $targetTitle = mb_strlen($comment->body) > 100 ? mb_substr($comment->body, 0, 100).'...' : $comment->body;
+                        }
+                    } elseif ($report->target_type === 'user') {
+                        $targetOwner = User::find($report->target_id);
+                        $targetTitle = $targetOwner?->username ?? 'User';
+                    }
 
                     if ($targetOwner && $targetOwner->id !== $report->reporter_id) {
                         PointsLog::create([
@@ -359,8 +376,29 @@ class ReportController extends Controller
                         ]);
 
                         $targetOwner->decrement('reputation_points', 5);
+
+                        if (in_array($report->target_type, ['post', 'comment'])) {
+                            $targetOwner->notify(new ContentModeratedNotification(
+                                targetType: $report->target_type,
+                                targetId: $report->target_id,
+                                targetTitle: $targetTitle,
+                                action: 'hide',
+                                reason: $report->reason,
+                                moderator: $request->user(),
+                            ));
+                        }
                     }
                 });
+            }
+
+            $report->load('reporter:id,username');
+
+            if ($report->reporter && $report->reporter_id !== $request->user()->id) {
+                $report->reporter->notify(new ReportResolvedNotification(
+                    report: $report,
+                    outcome: $request->status,
+                    resolver: $request->user(),
+                ));
             }
 
             return $this->resource(new ReportResource($report->fresh()->load(['reporter:id,username', 'resolver:id,username'])), 'Laporan berhasil diupdate.');

@@ -16,7 +16,7 @@ class Comment extends Model
 
     protected $fillable = [
         'post_id', 'user_id', 'parent_id', 'body',
-        'vote_score', 'is_accepted',
+        'vote_score', 'is_accepted', 'status',
     ];
 
     protected function casts(): array
@@ -24,6 +24,11 @@ class Comment extends Model
         return [
             'is_accepted' => 'boolean',
         ];
+    }
+
+    public function scopeVisible($query)
+    {
+        return $query->where('status', 'visible');
     }
 
     protected static function boot(): void

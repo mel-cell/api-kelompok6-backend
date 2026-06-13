@@ -18,6 +18,7 @@ class UserResource extends JsonResource
                 ? Storage::url($this->avatar_url)
                 : 'https://ui-avatars.com/api/?name='.urlencode($this->username).'&background=random&color=fff&size=200',
             'bio' => $this->bio,
+            'is_banned' => (bool) $this->is_banned,
             'reputation_points' => (int) $this->reputation_points,
             'level' => (int) $this->level,
             'created_at' => $this->created_at,

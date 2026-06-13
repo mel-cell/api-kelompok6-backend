@@ -31,6 +31,16 @@ class PostResource extends JsonResource
             'user_vote' => $this->user_vote ?? null,
             'user_liked' => (bool) ($this->user_liked ?? false),
             'is_bookmarked' => (bool) ($this->is_bookmarked ?? false),
+            'moderation' => $this->whenLoaded('latestModeration', fn () => [
+                'id' => $this->latestModeration->id,
+                'action' => $this->latestModeration->action,
+                'reason' => $this->latestModeration->reason,
+                'moderator' => [
+                    'id' => $this->latestModeration->moderator->id,
+                    'username' => $this->latestModeration->moderator->username,
+                ],
+                'created_at' => $this->latestModeration->created_at,
+            ]),
         ];
     }
 }

@@ -11,15 +11,20 @@ use App\Http\Resources\PostResource;
 use App\Models\Bookmark;
 use App\Models\Comment;
 use App\Models\Like;
+use App\Models\ModerationLog;
 use App\Models\Post;
 use App\Models\PostEditHistory;
+use App\Models\User;
 use App\Models\Vote;
 use App\Notifications\AnswerAcceptedNotification;
+use App\Notifications\ContentModeratedNotification;
+use App\Notifications\PostAppealNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use OpenApi\Attributes as OA;
 
 class PostController extends Controller
@@ -93,6 +98,14 @@ class PostController extends Controller
                 }
             }
 
+            if (! $request->filled('status')) {
+                $currentUser = $request->user('sanctum');
+                $isMod = $currentUser && $currentUser->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
+                if (! $isMod) {
+                    $query->where('status', 'open');
+                }
+            }
+
             $allowedSorts = ['created_at', 'title', 'view_count', 'vote_score'];
             $sortField = in_array($request->sort, $allowedSorts) ? $request->sort : 'created_at';
             $sortDir = strtolower($request->order ?? '') === 'asc' ? 'asc' : 'desc';
@@ -159,6 +172,10 @@ class PostController extends Controller
     public function store(StorePostRequest $request): JsonResponse
     {
         try {
+            if (! $request->user()->canCreatePosts()) {
+                return $this->forbidden('Kamu sedang dalam shadow ban dan tidak bisa membuat postingan');
+            }
+
             $body = strip_tags($request->body, Controller::ALLOWED_HTML_TAGS);
 
             $post = DB::transaction(function () use ($request, $body) {
@@ -403,6 +420,79 @@ class PostController extends Controller
             $post->update(['status' => 'deleted']);
 
             return $this->ok(null, 'Post berhasil dihapus');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function moderate(Request $request, string $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'action' => 'required|in:hide,restore',
+                'reason' => 'required_if:action,hide|string|max:1000',
+            ]);
+
+            $post = Post::findOrFail($id);
+            $moderator = $request->user();
+
+            $isModerator = $moderator->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
+            if (! $isModerator) {
+                return $this->forbidden();
+            }
+
+            $newStatus = $validated['action'] === 'hide' ? 'hidden' : 'open';
+
+            $post->update(['status' => $newStatus]);
+
+            ModerationLog::create([
+                'post_id' => $post->id,
+                'moderator_id' => $moderator->id,
+                'action' => $validated['action'],
+                'reason' => $validated['reason'] ?? null,
+            ]);
+
+            if ($post->user_id !== $moderator->id) {
+                $post->user->notify(new ContentModeratedNotification(
+                    targetType: 'post',
+                    targetId: $post->id,
+                    targetTitle: $post->title,
+                    action: $validated['action'],
+                    reason: $validated['reason'] ?? null,
+                    moderator: $moderator,
+                ));
+            }
+
+            $actionLabel = $validated['action'] === 'hide' ? 'disembunyikan' : 'direstore';
+
+            return $this->ok(['status' => $newStatus], "Post berhasil {$actionLabel}");
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function appeal(Request $request, string $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'reason' => 'required|string|max:1000',
+            ]);
+
+            $post = Post::findOrFail($id);
+            $user = $request->user();
+
+            if ($post->user_id !== $user->id) {
+                return $this->forbidden('Hanya pemilik post yang bisa mengajukan banding');
+            }
+
+            $moderators = User::whereHas('roles', fn ($q) => $q->whereIn('name', ['admin', 'moderator']))->get();
+            Notification::send($moderators, new PostAppealNotification($post, $validated['reason']));
+
+            return $this->ok(null, 'Banding berhasil dikirim ke moderator');
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {
