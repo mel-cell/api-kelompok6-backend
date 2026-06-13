@@ -242,6 +242,13 @@ class PostController extends Controller
                 ])->withCount(['comments', 'bookmarks'])->findOrFail($id);
             });
 
+            $user = $request->user('sanctum');
+            $isModerator = $user && $user->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
+
+            if (in_array($post->status, ['hidden', 'deleted']) && ! $isModerator) {
+                return $this->notFound();
+            }
+
             $post->load([
                 'comments' => function ($q) {
                     $q->whereNull('parent_id')
