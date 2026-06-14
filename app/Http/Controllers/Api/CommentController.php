@@ -9,8 +9,10 @@ use App\Http\Requests\UpdateCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\CommentEditHistory;
+use App\Models\Like;
 use App\Models\ModerationLog;
 use App\Models\Post;
+use App\Models\Vote;
 use App\Notifications\CommentNotification;
 use App\Notifications\ContentModeratedNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -66,6 +68,29 @@ class CommentController extends Controller
                 ->withCount('replies')
                 ->oldest()
                 ->get();
+
+            if ($user) {
+                $commentIds = $comments->pluck('id')->merge($comments->flatMap(fn ($c) => $c->replies->pluck('id')))->unique();
+
+                $votes = Vote::where('user_id', $user->id)
+                    ->whereIn('target_id', $commentIds)
+                    ->where('target_type', 'comment')
+                    ->pluck('vote_type', 'target_id');
+
+                $likes = Like::where('user_id', $user->id)
+                    ->whereIn('target_id', $commentIds)
+                    ->where('target_type', 'comment')
+                    ->pluck('id', 'target_id');
+
+                $comments->each(function ($c) use ($votes, $likes) {
+                    $c->setAttribute('user_vote', $votes->get($c->id));
+                    $c->setAttribute('user_liked', $likes->has($c->id));
+                    $c->replies->each(function ($r) use ($votes, $likes) {
+                        $r->setAttribute('user_vote', $votes->get($r->id));
+                        $r->setAttribute('user_liked', $likes->has($r->id));
+                    });
+                });
+            }
 
             return $this->resource(CommentResource::collection($comments));
         } catch (ModelNotFoundException $e) {

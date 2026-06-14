@@ -16,6 +16,8 @@ class CommentResource extends JsonResource
             'id' => $this->id,
             'body' => $this->body,
             'vote_score' => (int) $this->vote_score,
+            'user_vote' => $this->user_vote ?? null,
+            'user_liked' => (bool) ($this->user_liked ?? false),
             'is_accepted' => (bool) $this->is_accepted,
             'status' => $isModerator ? $this->status : null,
             'created_at' => $this->created_at,

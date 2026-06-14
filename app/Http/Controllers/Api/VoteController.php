@@ -106,7 +106,7 @@ class VoteController extends Controller
                         $post->user->notify(new VoteNotification($user, $request->vote_type, $post->id, 'post'));
                     }
 
-                    return $this->ok(['vote_score' => $post->fresh()->vote_score], 'Vote dihapus');
+                    return $this->ok(['vote_type' => null, 'vote_score' => $post->fresh()->vote_score], 'Vote dihapus');
                 }
 
                 $existing->update(['vote_type' => $request->vote_type]);
@@ -239,7 +239,7 @@ class VoteController extends Controller
                         $comment->user->notify(new VoteNotification($user, $request->vote_type, $comment->id, 'comment'));
                     }
 
-                    return $this->ok(['vote_score' => $comment->fresh()->vote_score], 'Vote dihapus');
+                    return $this->ok(['vote_type' => null, 'vote_score' => $comment->fresh()->vote_score], 'Vote dihapus');
                 }
 
                 $existing->update(['vote_type' => $request->vote_type]);

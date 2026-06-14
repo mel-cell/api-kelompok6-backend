@@ -233,7 +233,7 @@ class PostController extends Controller
     public function show(Request $request, string $id): JsonResponse
     {
         try {
-            $post = Cache::remember("post_{$id}", 600, function () use ($id) {
+            $post = Cache::remember("post_{$id}", 30, function () use ($id) {
                 return Post::with([
                     'user:id,username,avatar_url,reputation_points',
                     'category:id,name,slug',
