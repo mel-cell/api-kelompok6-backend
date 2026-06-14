@@ -25,7 +25,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/user', [AuthController::class, 'me']);
 
         Route::get('/profile', [ProfileController::class, 'show']);
-        Route::put('/profile', [ProfileController::class, 'update']);
+        Route::post('/profile', [ProfileController::class, 'update']);
         Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
         Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar']);
         Route::delete('/profile', [ProfileController::class, 'destroy']);
