@@ -14,6 +14,9 @@ RUN pecl install redis && docker-php-ext-enable redis
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# PHP upload limits
+COPY docker/php/upload-limits.ini /usr/local/etc/php/conf.d/upload-limits.ini
+
 WORKDIR /var/www/html
 
 COPY . .

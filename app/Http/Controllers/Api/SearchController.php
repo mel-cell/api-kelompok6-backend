@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -73,9 +74,12 @@ class SearchController extends Controller
         try {
             $request->validate(['q' => 'required|string|min:2']);
 
-            $ids = Post::search($request->q)->get()->pluck('id');
-            $posts = Post::with(['user:id,username,avatar_url', 'category:id,name,slug', 'tags:id,name,slug,color'])
-                ->whereIn('id', $ids)
+            $q = $request->q;
+            $posts = Post::with(['user:id,username,avatar_url,reputation_points,level', 'category:id,name,slug', 'tags:id,name,slug,color'])
+                ->where(function (Builder $query) use ($q) {
+                    $query->where('title', 'like', "%{$q}%")
+                          ->orWhere('body', 'like', "%{$q}%");
+                })
                 ->orderBy('created_at', 'desc')
                 ->paginate(min($request->per_page ?? 15, 50));
 
@@ -144,9 +148,9 @@ class SearchController extends Controller
         try {
             $request->validate(['q' => 'required|string|min:2']);
 
-            $ids = Comment::search($request->q)->get()->pluck('id');
-            $comments = Comment::with('user:id,username,avatar_url')
-                ->whereIn('id', $ids)
+            $q = $request->q;
+            $comments = Comment::with('user:id,username,avatar_url,reputation_points,level')
+                ->where('body', 'like', "%{$q}%")
                 ->orderBy('created_at', 'desc')
                 ->paginate(min($request->per_page ?? 15, 50));
 
@@ -215,8 +219,9 @@ class SearchController extends Controller
         try {
             $request->validate(['q' => 'required|string|min:2']);
 
-            $ids = User::search($request->q)->get()->pluck('id');
-            $users = User::whereIn('id', $ids)
+            $q = $request->q;
+            $users = User::where('username', 'like', "%{$q}%")
+                ->orWhere('bio', 'like', "%{$q}%")
                 ->orderBy('reputation_points', 'desc')
                 ->paginate(min($request->per_page ?? 15, 50));
 

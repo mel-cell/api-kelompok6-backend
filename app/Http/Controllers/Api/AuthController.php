@@ -213,7 +213,7 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         try {
-            return $this->resource(new UserResource($request->user()->load('roles')));
+            return $this->resource(new UserResource($request->user()->loadCount(['followers', 'following', 'posts'])->load('roles')));
         } catch (\Throwable $e) {
             return $this->error('Terjadi kesalahan server', 500);
         }

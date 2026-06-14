@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VoteController;
+use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {

@@ -15,7 +15,7 @@ class UserResource extends JsonResource
             'email' => $this->when(auth()->id() === $this->id, $this->email),
             'username' => $this->username,
             'avatar_url' => $this->avatar_url
-                ? Storage::url($this->avatar_url)
+                ? Storage::disk('public')->url($this->avatar_url)
                 : 'https://ui-avatars.com/api/?name='.urlencode($this->username).'&background=random&color=fff&size=200',
             'bio' => $this->bio,
             'is_banned' => (bool) $this->is_banned,

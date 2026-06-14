@@ -20,6 +20,8 @@ class ReportResource extends JsonResource
             'resolved_at' => $this->resolved_at,
             'reporter' => new UserResource($this->whenLoaded('reporter')),
             'resolver' => new UserResource($this->whenLoaded('resolver')),
+            'post' => $this->whenLoaded('target') && $this->target_type === 'post' ? new PostResource($this->target) : null,
+            'comment' => $this->whenLoaded('target') && $this->target_type === 'comment' ? new CommentResource($this->target) : null,
         ];
     }
 }

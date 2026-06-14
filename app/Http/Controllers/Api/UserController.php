@@ -119,9 +119,9 @@ class UserController extends Controller
     {
         try {
             $user = User::findOrFail($id);
-            $followers = $user->followers()->with('follower:id,username,avatar_url')->paginate(20);
+            $followers = $user->followers()->with('follower:id,username,avatar_url,reputation_points,level')->paginate(20);
 
-            return $this->ok($followers);
+            return $this->ok($followers->items());
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {
@@ -177,9 +177,9 @@ class UserController extends Controller
     {
         try {
             $user = User::findOrFail($id);
-            $following = $user->following()->with('following:id,username,avatar_url')->paginate(20);
+            $following = $user->following()->with('following:id,username,avatar_url,reputation_points,level')->paginate(20);
 
-            return $this->ok($following);
+            return $this->ok($following->items());
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {

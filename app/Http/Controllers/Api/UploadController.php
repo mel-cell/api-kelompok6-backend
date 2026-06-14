@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
@@ -58,9 +60,14 @@ class UploadController extends Controller
             }
 
             return $this->ok([
-                'url' => url('storage/'.$path),
+                'url' => Storage::disk('public')->url($path),
             ], 'Upload berhasil');
         } catch (\Throwable $e) {
+            Log::error('Upload image error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return $this->error('Terjadi kesalahan server', 500);
         }
     }

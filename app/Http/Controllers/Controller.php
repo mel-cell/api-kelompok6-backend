@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
     description: 'Dokumentasi API Kelompok 6 dengan standar keamanan OWASP'
 )]
 #[OA\Server(
-    url: L5_SWAGGER_CONST_HOST,
+    url: 'https://api.melvin.my.id',
     description: 'API Server Utama'
 )]
 #[OA\SecurityScheme(

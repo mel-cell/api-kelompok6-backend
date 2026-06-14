@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Events\AnswerAccepted;
 use App\Events\PostCreated;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Bookmark;
 use App\Models\Comment;
@@ -17,6 +19,7 @@ use App\Models\Vote;
 use App\Notifications\AnswerAcceptedNotification;
 use App\Notifications\ContentModeratedNotification;
 use App\Notifications\PostAppealNotification;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -80,14 +83,17 @@ class PostController extends Controller
 
             $responseData = Cache::remember($cacheKey, 60, function () use ($request, $currentUser, $isMod) {
                 $query = Post::with([
-                    'user:id,username,avatar_url',
+                    'user:id,username,avatar_url,reputation_points,level',
                     'category:id,name,slug',
                     'tags:id,name,slug,color',
                 ])->withCount(['comments', 'bookmarks']);
 
                 if ($request->filled('search')) {
-                    $ids = Post::search($request->search)->get()->pluck('id');
-                    $query->whereIn('id', $ids);
+                    $search = $request->search;
+                    $query->where(function (Builder $q) use ($search) {
+                        $q->where('title', 'like', "%{$search}%")
+                          ->orWhere('body', 'like', "%{$search}%");
+                    });
                 }
 
                 $category = $request->input('filter.category', $request->category);
@@ -282,7 +288,7 @@ class PostController extends Controller
         try {
             $post = Cache::remember("post_{$id}", 30, function () use ($id) {
                 return Post::with([
-                    'user:id,username,avatar_url,reputation_points',
+                    'user:id,username,avatar_url,reputation_points,level',
                     'category:id,name,slug',
                     'tags:id,name,slug,color',
                     'acceptedAnswer',
@@ -302,8 +308,8 @@ class PostController extends Controller
             $post->load([
                 'comments' => function ($q) {
                     $q->whereNull('parent_id')
-                        ->with(['user:id,username,avatar_url', 'replies' => function ($q) {
-                            $q->with('user:id,username,avatar_url');
+                        ->with(['user:id,username,avatar_url,reputation_points,level', 'replies' => function ($q) {
+                            $q->with('user:id,username,avatar_url,reputation_points,level');
                         }]);
                 },
             ]);

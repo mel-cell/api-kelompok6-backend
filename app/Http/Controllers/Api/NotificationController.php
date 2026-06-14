@@ -7,6 +7,7 @@ use App\Http\Resources\NotificationResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
 class NotificationController extends Controller
@@ -184,11 +185,17 @@ class NotificationController extends Controller
     public function unreadCount(Request $request): JsonResponse
     {
         try {
-            $count = $request->user()->unreadNotifications()->count();
+            $count = $request->user()->notifications()->whereNull('read_at')->count();
 
             return $this->ok(['unread_count' => $count]);
         } catch (\Throwable $e) {
-            return $this->error('Terjadi kesalahan server', 500);
+            Log::error('Notification unreadCount failed', [
+                'user_id' => $request->user()?->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->ok(['unread_count' => 0]);
         }
     }
 

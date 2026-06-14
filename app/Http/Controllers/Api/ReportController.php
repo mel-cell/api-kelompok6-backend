@@ -181,7 +181,12 @@ class ReportController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Report::with(['reporter:id,username', 'resolver:id,username']);
+            $query = Report::with([
+                'reporter:id,username',
+                'resolver:id,username',
+                'target',
+                'target.user:id,username',
+            ]);
 
             if ($request->filled('status')) {
                 $query->where('status', $request->status);

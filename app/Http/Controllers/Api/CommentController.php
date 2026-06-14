@@ -61,9 +61,9 @@ class CommentController extends Controller
             $comments = $post->comments()
                 ->when(! $isModerator, fn ($q) => $q->visible())
                 ->whereNull('parent_id')
-                ->with(['user:id,username,avatar_url', 'replies' => function ($q) use ($isModerator) {
+                ->with(['user:id,username,avatar_url,reputation_points,level', 'replies' => function ($q) use ($isModerator) {
                     $q->when(! $isModerator, fn ($q) => $q->visible())
-                        ->with('user:id,username,avatar_url')->oldest();
+                        ->with('user:id,username,avatar_url,reputation_points,level')->oldest();
                 }])
                 ->withCount('replies')
                 ->oldest()
@@ -174,7 +174,7 @@ class CommentController extends Controller
                 'body' => $request->body,
             ]);
 
-            $comment->load('user:id,username,avatar_url');
+            $comment->load('user:id,username,avatar_url,reputation_points,level');
 
             CommentCreated::dispatch($comment);
 
@@ -275,7 +275,7 @@ class CommentController extends Controller
 
             $comment->update($request->only('body'));
 
-            return $this->resource(new CommentResource($comment->fresh()->load('user:id,username,avatar_url')), 'Komentar diperbarui');
+            return $this->resource(new CommentResource($comment->fresh()->load('user:id,username,avatar_url,reputation_points,level')), 'Komentar diperbarui');
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {
@@ -337,7 +337,7 @@ class CommentController extends Controller
 
             $user = $request->user();
             $isOwner = $comment->user_id === $user->id;
-            $isModerator = $user->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
+            $isModerator = $user->roles?->contains(fn ($r) => in_array($r->name, ['admin', 'moderator'])) ?? false;
 
             if (! $isOwner && ! $isModerator) {
                 return $this->forbidden();
