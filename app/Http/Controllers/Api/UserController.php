@@ -402,4 +402,31 @@ class UserController extends Controller
             return $this->error('Terjadi kesalahan server', 500);
         }
     }
+
+    public function warn(Request $request, string $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'reason' => 'required|string|max:1000',
+            ]);
+
+            $user = User::findOrFail($id);
+
+            if ($user->id === $request->user()->id) {
+                return $this->error('Tidak bisa memperingati diri sendiri', 422);
+            }
+
+            $user->notify(new UserStatusNotification(
+                action: 'warned',
+                reason: $validated['reason'],
+                actor: $request->user(),
+            ));
+
+            return $this->ok(null, 'Peringatan berhasil dikirim');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
 }

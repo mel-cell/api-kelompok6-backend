@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Events\AnswerAccepted;
 use App\Events\PostCreated;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Bookmark;
 use App\Models\Comment;
@@ -25,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 class PostController extends Controller
@@ -66,54 +65,102 @@ class PostController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Post::with(['user:id,username,avatar_url', 'category:id,name,slug', 'tags:id,name,slug,color']);
-
-            if ($request->filled('search')) {
-                $ids = Post::search($request->search)->get()->pluck('id');
-                $query->whereIn('id', $ids);
+            $currentUser = $request->user('sanctum');
+            if ($currentUser) {
+                $currentUser->load('roles');
             }
+            $isMod = $currentUser && $currentUser->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
 
-            $category = $request->input('filter.category', $request->category);
-            if ($category) {
-                $query->whereHas('category', fn ($q) => $q->where('slug', $category));
-            }
+            $cacheKey = 'posts_index_'.hash('xxh3', json_encode([
+                'q' => $request->all(),
+                'uid' => $currentUser?->id ?? 'g',
+                'p' => $request->input('page', 1),
+                'mod' => $isMod,
+            ]));
 
-            $tag = $request->input('filter.tag', $request->tag);
-            if ($tag) {
-                $query->whereHas('tags', fn ($q) => $q->where('slug', $tag));
-            }
+            $responseData = Cache::remember($cacheKey, 60, function () use ($request, $currentUser, $isMod) {
+                $query = Post::with([
+                    'user:id,username,avatar_url',
+                    'category:id,name,slug',
+                    'tags:id,name,slug,color',
+                ])->withCount(['comments', 'bookmarks']);
 
-            if ($request->filled('user')) {
-                $query->where('user_id', $request->user);
-            }
-
-            if ($request->filled('status')) {
-                $query->where('status', $request->status);
-            }
-
-            if ($request->boolean('bookmarked')) {
-                $user = $request->user('sanctum');
-                if ($user) {
-                    $query->whereHas('bookmarks', fn ($q) => $q->where('user_id', $user->id));
+                if ($request->filled('search')) {
+                    $ids = Post::search($request->search)->get()->pluck('id');
+                    $query->whereIn('id', $ids);
                 }
-            }
 
-            if (! $request->filled('status')) {
-                $currentUser = $request->user('sanctum');
-                $isMod = $currentUser && $currentUser->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
-                if (! $isMod) {
-                    $query->where('status', 'open');
+                $category = $request->input('filter.category', $request->category);
+                if ($category) {
+                    $query->whereHas('category', fn ($q) => $q->where('slug', $category));
                 }
-            }
 
-            $allowedSorts = ['created_at', 'title', 'view_count', 'vote_score'];
-            $sortField = in_array($request->sort, $allowedSorts) ? $request->sort : 'created_at';
-            $sortDir = strtolower($request->order ?? '') === 'asc' ? 'asc' : 'desc';
-            $query->orderBy($sortField, $sortDir);
+                $tag = $request->input('filter.tag', $request->tag);
+                if ($tag) {
+                    $query->whereHas('tags', fn ($q) => $q->where('slug', $tag));
+                }
 
-            $posts = $query->paginate($request->per_page ?? 15);
+                if ($request->filled('user')) {
+                    $query->where('user_id', $request->user);
+                }
 
-            return $this->resource(PostResource::collection($posts));
+                if ($request->filled('status')) {
+                    $query->where('status', $request->status);
+                }
+
+                if ($request->boolean('bookmarked')) {
+                    if ($currentUser) {
+                        $query->whereHas('bookmarks', fn ($q) => $q->where('user_id', $currentUser->id));
+                    }
+                }
+
+                if (! $request->filled('status')) {
+                    if (! $isMod) {
+                        $query->where('status', 'open');
+                    }
+                }
+
+                $allowedSorts = ['created_at', 'title', 'view_count', 'vote_score'];
+                $sortField = in_array($request->sort, $allowedSorts) ? $request->sort : 'created_at';
+                $sortDir = strtolower($request->order ?? '') === 'asc' ? 'asc' : 'desc';
+                $query->orderBy($sortField, $sortDir);
+
+                $posts = $query->paginate($request->per_page ?? 15);
+
+                $posts->each(function ($post) {
+                    $post->body = Str::limit(strip_tags($post->body), 200);
+                });
+
+                if ($currentUser) {
+                    $postIds = $posts->pluck('id');
+                    $votes = Vote::where('user_id', $currentUser->id)
+                        ->whereIn('target_id', $postIds)
+                        ->where('target_type', 'post')
+                        ->pluck('vote_type', 'target_id');
+                    $likes = Like::where('user_id', $currentUser->id)
+                        ->whereIn('target_id', $postIds)
+                        ->where('target_type', 'post')
+                        ->pluck('target_id');
+                    $bookmarks = Bookmark::where('user_id', $currentUser->id)
+                        ->whereIn('post_id', $postIds)
+                        ->pluck('post_id');
+
+                    $posts->each(function ($post) use ($votes, $likes, $bookmarks) {
+                        $post->setAttribute('user_vote', $votes->get($post->id));
+                        $post->setAttribute('user_liked', $likes->has($post->id));
+                        $post->setAttribute('is_bookmarked', $bookmarks->has($post->id));
+                    });
+                }
+
+                $collection = PostResource::collection($posts);
+                $responseData = $collection->response()->getData(true);
+                $responseData['success'] = true;
+                $responseData['message'] = 'Berhasil';
+
+                return $responseData;
+            });
+
+            return response()->json($responseData);
         } catch (\Throwable $e) {
             return $this->error('Terjadi kesalahan server', 500);
         }
@@ -243,6 +290,9 @@ class PostController extends Controller
             });
 
             $user = $request->user('sanctum');
+            if ($user) {
+                $user->load('roles');
+            }
             $isModerator = $user && $user->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
 
             if (in_array($post->status, ['hidden', 'deleted']) && ! $isModerator) {
@@ -331,6 +381,7 @@ class PostController extends Controller
             $post = Post::findOrFail($id);
 
             $user = $request->user();
+            $user->load('roles');
             $isOwner = $post->user_id === $user->id;
             $isModerator = $user->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
 
@@ -417,6 +468,7 @@ class PostController extends Controller
             $post = Post::findOrFail($id);
 
             $user = $request->user();
+            $user->load('roles');
             $isOwner = $post->user_id === $user->id;
             $isModerator = $user->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
 
@@ -444,6 +496,7 @@ class PostController extends Controller
 
             $post = Post::findOrFail($id);
             $moderator = $request->user();
+            $moderator->load('roles');
 
             $isModerator = $moderator->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
             if (! $isModerator) {
@@ -697,6 +750,7 @@ class PostController extends Controller
             $post = Post::findOrFail($id);
 
             $user = $request->user();
+            $user->load('roles');
             $isOwner = $post->user_id === $user->id;
             $isModerator = $user->roles->contains(fn ($r) => in_array($r->name, ['admin', 'moderator']));
 

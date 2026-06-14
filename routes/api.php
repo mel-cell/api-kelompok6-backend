@@ -3,8 +3,10 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PageViewController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReportController;
@@ -62,16 +64,27 @@ Route::prefix('v1')->group(function () {
         Route::post('/reports', [ReportController::class, 'store'])->middleware('throttle:reports');
     });
 
+    Route::post('/page-views', [PageViewController::class, 'store'])->middleware('throttle:60,1');
+
     Route::get('/reports/reasons', [ReportController::class, 'reasons']);
 
     Route::middleware(['auth:sanctum', 'role:moderator,admin', 'throttle:api'])->group(function () {
         Route::get('/users', [UserController::class, 'index']);
-        Route::patch('/users/{user}/ban', [UserController::class, 'toggleBan']);
         Route::patch('/users/{user}/shadow-ban', [UserController::class, 'shadowBan']);
+        Route::post('/users/{user}/warn', [UserController::class, 'warn']);
 
         Route::get('/reports', [ReportController::class, 'index']);
         Route::get('/reports/{report}', [ReportController::class, 'show']);
         Route::patch('/reports/{report}/resolve', [ReportController::class, 'resolve']);
+
+        Route::post('/posts/{post}/moderate', [PostController::class, 'moderate']);
+        Route::post('/comments/{comment}/moderate', [CommentController::class, 'moderate']);
+    });
+
+    Route::middleware(['auth:sanctum', 'role:admin', 'throttle:api'])->group(function () {
+        Route::get('/admin/dashboard', [DashboardController::class, 'index']);
+
+        Route::patch('/users/{user}/ban', [UserController::class, 'toggleBan']);
 
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
@@ -79,9 +92,6 @@ Route::prefix('v1')->group(function () {
 
         Route::put('/tags/{tag}', [TagController::class, 'update']);
         Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
-
-        Route::post('/posts/{post}/moderate', [PostController::class, 'moderate']);
-        Route::post('/comments/{comment}/moderate', [CommentController::class, 'moderate']);
     });
 
     Route::middleware('auth:sanctum')->group(function () {
