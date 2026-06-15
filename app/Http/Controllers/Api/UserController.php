@@ -60,7 +60,7 @@ class UserController extends Controller
     {
         try {
             $user = Cache::remember("user_{$id}", 3600, function () use ($id) {
-                return User::withCount(['followers', 'following', 'posts'])->with('roles')->findOrFail($id);
+                return User::withCount(['followers', 'following', 'posts'])->with('roles', 'shadowBans')->findOrFail($id);
             });
 
             return $this->resource(new UserResource($user));
@@ -280,7 +280,7 @@ class UserController extends Controller
     public function byUsername(string $username): JsonResponse
     {
         try {
-            $user = User::withCount(['followers', 'following', 'posts'])->with('roles')
+            $user = User::withCount(['followers', 'following', 'posts'])->with('roles', 'shadowBans')
                 ->where('username', $username)
                 ->firstOrFail();
 
@@ -295,7 +295,7 @@ class UserController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = User::with('roles')->withCount(['followers', 'following', 'posts']);
+            $query = User::with('roles', 'shadowBans')->withCount(['followers', 'following', 'posts']);
 
             if ($request->filled('search')) {
                 $search = $request->search;
@@ -396,6 +396,34 @@ class UserController extends Controller
             Cache::forget("user_{$id}");
 
             return $this->ok(null, 'Shadow ban berhasil diterapkan');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function removeShadowBan(Request $request, string $id): JsonResponse
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            $activeBan = $user->activeShadowBan();
+            if (! $activeBan) {
+                return $this->error('User tidak dalam status shadow ban', 404);
+            }
+
+            $activeBan->delete();
+
+            $user->notify(new UserStatusNotification(
+                action: 'shadow_ban_removed',
+                reason: null,
+                actor: $request->user(),
+            ));
+
+            Cache::forget("user_{$id}");
+
+            return $this->ok(['is_shadow_banned' => false], 'Shadow ban berhasil dihapus');
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {

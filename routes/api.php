@@ -70,8 +70,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/reports/reasons', [ReportController::class, 'reasons']);
 
     Route::middleware(['auth:sanctum', 'role:moderator,admin', 'throttle:api'])->group(function () {
-        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/shadow-ban', [UserController::class, 'shadowBan']);
+        Route::delete('/users/{user}/shadow-ban', [UserController::class, 'removeShadowBan']);
         Route::post('/users/{user}/warn', [UserController::class, 'warn']);
 
         Route::get('/reports', [ReportController::class, 'index']);

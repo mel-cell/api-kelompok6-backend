@@ -19,6 +19,9 @@ class UserResource extends JsonResource
                 : 'https://ui-avatars.com/api/?name='.urlencode($this->username).'&background=random&color=fff&size=200',
             'bio' => $this->bio,
             'is_banned' => (bool) $this->is_banned,
+            'is_shadow_banned' => $this->whenLoaded('shadowBans')
+                ? $this->shadowBans->where('expires_at', '>', now())->isNotEmpty()
+                : $this->isShadowBanned(),
             'reputation_points' => (int) $this->reputation_points,
             'level' => (int) $this->level,
             'created_at' => $this->created_at,
