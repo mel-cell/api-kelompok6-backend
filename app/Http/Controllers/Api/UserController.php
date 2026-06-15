@@ -330,8 +330,13 @@ class UserController extends Controller
                 return $this->error('Tidak bisa ban diri sendiri', 422);
             }
 
-            $user->update(['is_banned' => ! $user->is_banned]);
+            $wasBanned = $user->is_banned;
+            $user->update(['is_banned' => ! $wasBanned]);
             Cache::forget("user_{$id}");
+
+            if ($wasBanned && $user->reputation_points < 0) {
+                $user->update(['reputation_points' => 0]);
+            }
 
             $action = $user->is_banned ? 'banned' : 'unbanned';
             $user->notify(new UserStatusNotification(
@@ -415,6 +420,18 @@ class UserController extends Controller
 
             $activeBan->delete();
 
+            $user->update([
+                'reputation_points' => 0,
+                'is_banned' => false,
+            ]);
+
+            PointsLog::create([
+                'user_id' => $user->id,
+                'points' => 0,
+                'action_type' => 'shadow_ban_removed',
+                'description' => 'Shadow ban dihapus, reputasi direset ke 0',
+            ]);
+
             $user->notify(new UserStatusNotification(
                 action: 'shadow_ban_removed',
                 reason: null,
@@ -423,7 +440,38 @@ class UserController extends Controller
 
             Cache::forget("user_{$id}");
 
-            return $this->ok(['is_shadow_banned' => false], 'Shadow ban berhasil dihapus');
+            return $this->ok(['is_shadow_banned' => false], 'Shadow ban berhasil dihapus, reputasi direset');
+        } catch (ModelNotFoundException $e) {
+            return $this->notFound();
+        } catch (\Throwable $e) {
+            return $this->error('Terjadi kesalahan server', 500);
+        }
+    }
+
+    public function resetReputation(Request $request, string $id): JsonResponse
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($user->reputation_points >= 0) {
+                return $this->ok(['reputation_points' => $user->reputation_points], 'Reputasi user sudah aman');
+            }
+
+            $user->update([
+                'reputation_points' => 0,
+                'is_banned' => false,
+            ]);
+
+            PointsLog::create([
+                'user_id' => $user->id,
+                'points' => 0,
+                'action_type' => 'reputation_reset',
+                'description' => 'Reputasi direset ke 0 oleh ' . $request->user()->username,
+            ]);
+
+            Cache::forget("user_{$id}");
+
+            return $this->ok(['reputation_points' => 0], 'Reputasi berhasil direset ke 0');
         } catch (ModelNotFoundException $e) {
             return $this->notFound();
         } catch (\Throwable $e) {

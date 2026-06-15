@@ -74,6 +74,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/users/{user}/shadow-ban', [UserController::class, 'shadowBan']);
         Route::delete('/users/{user}/shadow-ban', [UserController::class, 'removeShadowBan']);
         Route::post('/users/{user}/warn', [UserController::class, 'warn']);
+        Route::patch('/users/{user}/reset-reputation', [UserController::class, 'resetReputation']);
 
         Route::get('/reports', [ReportController::class, 'index']);
         Route::get('/reports/{report}', [ReportController::class, 'show']);
